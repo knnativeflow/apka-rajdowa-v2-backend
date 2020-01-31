@@ -1,7 +1,8 @@
-# Native Flow TS Express boilerplate 
-![Build Status](https://travis-ci.org/dimitor115/express-ts-boilertemplate.svg?branch=master)
+# Apka Rajdowa v2 Backend 
+by `NativeFlow` 
 
-This is boilertemple for future projects in Native Flow, still during development.
+
+
 
 ## The architecture concept of this application is based on the following frameworks : 
 
@@ -12,4 +13,4 @@ This is boilertemple for future projects in Native Flow, still during developmen
 ## Running
 
 * To run app in development mode (server will restart after each change) : `yarn dev`
-* To run app in production mode use `yarn build-ts` and `yarn start`
+* To run app in production mode use `yarn build and `yarn start`
