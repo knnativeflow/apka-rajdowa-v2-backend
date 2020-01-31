@@ -26,7 +26,7 @@ import path from 'path'
     app.use('/static', express.static(path.join(__dirname, './static')))
     app.use('/docs/v1/swagger', swaggerUI.serve, swaggerUI.setup(require('./static/swagger.json')))
 
-    // await connectToMongo(config.databaseUrl)
+    await connectToMongo(config.databaseUrl)
     server.listen(config.port)
     logger.info(`Server running on port : ${config.port}`)
 })()

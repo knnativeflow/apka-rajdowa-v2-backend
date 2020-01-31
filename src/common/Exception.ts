@@ -10,8 +10,8 @@ export default class Exception {
         this.httpCode = httpCode
     }
 
-    static fromMessage(errorCode: ErrorCodes, httpCode = 500): Exception {
-        return new this([new Message(errorCode)], httpCode)
+    static fromMessage(message: string, httpCode = 500): Exception {
+        return new this([new Message(message)], httpCode)
     }
 
     toString(): string {

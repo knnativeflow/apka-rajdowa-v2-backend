@@ -1,11 +1,12 @@
 import { logger } from '../common/logger'
 
-import mongoose from 'mongoose'
+import mongoose, {Mongoose} from 'mongoose'
 
-export const connectToMongo = (url: string): Promise<any> => {
+export const connectToMongo = async (url: string): Promise<Mongoose> => {
     mongoose.connection
         .on('connected', () => logger.info('Connected to the database'))
         .on('error', () => logger.error('Error with database connection'))
-        .on('disconnected', connectToMongo)
-    return mongoose.connect(url, { keepAlive: true, useNewUrlParser: true })
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        .on('disconnected', connectToMongo) //TODO: shouldn't be some timeout here??
+    return await mongoose.connect(url, {keepAlive: true, useNewUrlParser: true})
 }
