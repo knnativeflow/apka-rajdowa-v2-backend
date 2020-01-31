@@ -28,9 +28,9 @@ export async function expressAuthentication(request: express.Request, securityNa
         // const result = await User.findOne({ login: payload.user.login })
         const result = await Promise.resolve()
 
-        if (!result) {
-            throw Exception.fromMessage(ErrorCodes.NO_ACCESS, 403)
-        }
+        // if (!result) {
+        //     throw Exception.fromMessage(ErrorCodes.NO_ACCESS, 403)
+        // }
 
         return result
     }
