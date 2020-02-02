@@ -1,12 +1,11 @@
 import fs from 'fs'
-import {EventDoc, EventModel} from 'models/Event'
+import {EventDoc, EventModel, EventRequest} from 'models/Event'
 import Response from 'common/Response'
 import { byIdQuery} from 'common/utils'
 
 import UserService from './AdministratorService'
 
 import {logger} from 'common/logger'
-import {EventRequest} from "models/EventRequest";
 import {User} from "models/User";
 import {Administrator, USER_ROLE} from "models/Administrator";
 import {Message} from "common/Message";

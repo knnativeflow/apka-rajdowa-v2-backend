@@ -4,7 +4,7 @@ import {AdministratorChangeRoleRequest, AdministratorDoc, AdministratorRequest} 
 import AdministratorService from "service/AdministratorService";
 
 @Route()
-@Tags('Administrator')
+@Tags('Administrators')
 export class AdministratorApi extends Controller {
 
     /**

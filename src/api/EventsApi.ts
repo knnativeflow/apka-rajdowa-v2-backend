@@ -1,9 +1,8 @@
 import {Body, Controller, Delete, Get, Post, Put, Route, Tags} from 'tsoa'
-import {EventDoc} from "models/Event"
+import {EventDoc, EventRequest} from "models/Event"
 import Response from "common/Response";
 import EventService from "service/EventService";
 import {UserModel} from "models/User";
-import {EventRequest} from "models/EventRequest";
 
 const MOCK_USER = new UserModel({
     google: {

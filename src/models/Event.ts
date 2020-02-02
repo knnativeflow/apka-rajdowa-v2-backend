@@ -1,6 +1,14 @@
 import {Document, model, Schema} from 'mongoose'
 import {AdministratorDoc, AdministratorSchema} from "models/Administrator";
 
+export interface EventRequest {
+    name: string;
+    emailAlias: string;
+    startDate: string;
+    endDate: string;
+    usersEmails: string[];
+}
+
 export interface EventDoc extends Document{
     administrators: AdministratorDoc[];
     forms: string[];
