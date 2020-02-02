@@ -5,6 +5,14 @@ export enum USER_ROLE {
     ADMIN = 'ADMIN'
 }
 
+export interface AdministratorChangeRoleRequest {
+    role: USER_ROLE;
+}
+
+export interface AdministratorRequest {
+    email: string;
+}
+
 export interface Administrator {
     userId: string;
     role: USER_ROLE;

@@ -1,8 +1,8 @@
-import { Schema, Document, model } from 'mongoose'
-import {Administrator, AdministratorSchema} from "models/Administrator";
+import {Document, model, Schema} from 'mongoose'
+import {AdministratorDoc, AdministratorSchema} from "models/Administrator";
 
 export interface EventDoc extends Document{
-    administrators: Administrator[];
+    administrators: AdministratorDoc[];
     forms: string[];
     name: string;
     emailAlias: string;

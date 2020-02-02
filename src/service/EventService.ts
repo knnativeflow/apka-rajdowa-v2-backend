@@ -3,7 +3,7 @@ import {EventDoc, EventModel} from 'models/Event'
 import Response from 'common/Response'
 import { byIdQuery} from 'common/utils'
 
-import UserService from './UserService'
+import UserService from './AdministratorService'
 
 import {logger} from 'common/logger'
 import {EventRequest} from "models/EventRequest";

@@ -6,15 +6,15 @@ export class Message {
         readonly type: MessageType = MessageType.ERROR
     ) {}
 
-    static error(message: ErrorCodes, params: string[] = []): Message{
+    static error(message: string,): Message{
         return new this(message, MessageType.ERROR)
     }
 
-    static info(message: ErrorCodes, params: string[] = []): Message{
+    static info(message: string): Message{
         return new this(message, MessageType.INFO)
     }
 
-    static success(message: ErrorCodes, params: string[] = []): Message{
+    static success(message: string): Message{
         return new this(message, MessageType.SUCCESS)
     }
 }
