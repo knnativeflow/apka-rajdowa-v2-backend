@@ -41,7 +41,7 @@ async function getPublic(slug: string): Promise<Response<FormSchemaDoc>> {
     if (!schema) {
         throw Exception.fromMessage(`Not found schema by slug: ${slug}`, 404)
     } else {
-        schema.structure = _parseToPublic(schema.structure)
+        schema.structure = parseToPublic(schema.structure)
         return new Response(_parseFormSchema(schema), 200)
     }
 }
@@ -69,7 +69,7 @@ async function _saveSchemaToEvent(eventId: string, schemaSlug: string): Promise<
     }
 }
 
-function _parseToPublic(schemaStructure: any): any {
+function parseToPublic(schemaStructure: any): any {
     return Object.keys(schemaStructure)
         .reduce((aggregate, key) => (
             !schemaStructure[key].isHidden
@@ -107,5 +107,6 @@ function _mapKeysToFrontFormat(fieldObj: any): any {
 export default {
     create,
     getPrivate,
-    getPublic
+    getPublic,
+    parseToPublic
 }

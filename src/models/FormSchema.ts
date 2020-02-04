@@ -1,7 +1,7 @@
 import {Document, model, Schema} from 'mongoose'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface Structure {}
+export type Structure = Record<string, string>
 
 export interface FormSchemaRequest {
     details: {
