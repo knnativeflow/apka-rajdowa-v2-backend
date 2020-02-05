@@ -6,10 +6,10 @@
   "license": "MIT",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --ignore src/api/_auto/routes.ts --watch src -e ts --exec yarn dev-start",
-    "dev-start": "yarn tsoaGen && ts-node -r tsconfig-paths/register src/server.ts",
+    "dev": "nodemon --ignore src/api/_auto/routes.ts --watch src -e ts --exec npm dev-start",
+    "dev-start": "npm run tsoaGen && ts-node -r tsconfig-paths/register src/server.ts",
     "tsoaGen": "ts-node -r tsconfig-paths/register apiGenerator.ts",
-    "build": "yarn tsoaGen && ttsc && ts-node copyStaticAssets.ts",
+    "build": "npm run tsoaGen && ttsc && ts-node copyStaticAssets.ts",
     "lint": "eslint --ext src/**/*.ts",
     "lint:fix": "eslint --fix src/**/*.ts",
     "start": "node dist/server.js",
@@ -17,7 +17,8 @@
     "playground": "ts-node tsconfig-paths/register src/playground.ts"
   },
   "engines": {
-    "npm": "6.x.x"
+    "npm": "6.x.x",
+    "node": "12.x.x"
   },
   "devDependencies": {
     "@types/cors": "^2.8.6",
@@ -49,6 +50,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.0.0",
     "express": "^4.17.1",
+    "google-auth-library": "^5.9.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.6.8",
     "mongoose-paginate-v2": "^1.3.3",
