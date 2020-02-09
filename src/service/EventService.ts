@@ -1,22 +1,23 @@
 import fs from 'fs'
 import {EventDoc, EventModel, EventRequest} from 'models/Event'
 import Response from 'common/Response'
-import { byIdQuery} from 'common/utils'
+import {byIdQuery} from 'common/utils'
 
 import UserService from './AdministratorService'
 
 import {logger} from 'common/logger'
-import {User} from "models/User";
-import {Administrator, USER_ROLE} from "models/Administrator";
-import {Message} from "common/Message";
-import Exception from "common/Exception";
-
+import {Administrator} from 'models/Administrator'
+import {Message} from 'common/Message'
+import Exception from 'common/Exception'
+import {ROLE} from 'common/consts'
+import {TokenPayload} from 'google-auth-library'
 
 const uploadDir = process.env.UPLOAD_DIR || 'public/uploads'
 
-async function add(event: EventRequest, img, user: User): Promise<Response<EventDoc>> {
-    logger.info(`Creating new event with name ${event.name} by ${user.google.email}`)
-    const {administrators, messages} = await _prepareAdministrators(event.usersEmails, user._id, user.google.email)
+async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
+    logger.info(`Creating new event with name ${event.name} by ${user.email}`)
+    console.log(event)
+    const {administrators, messages} = await _prepareAdministrators([], user.sub, user.email) //TODO replace this empty array
     const parsedEvent = {
         ...event,
         administrators,
@@ -34,7 +35,7 @@ async function _prepareAdministrators(
     ownerEmail: string
 ): Promise<{ administrators: Administrator[]; messages: Message[] }> {
     const messages: Message[] = []
-    const owner: Administrator = {userId: ownerId, role: USER_ROLE.OWNER, email: ownerEmail}
+    const owner: Administrator = {userId: ownerId, role: ROLE.EVENT_OWNER, email: ownerEmail}
     const administrators = await UserService.parseEmailsToUsers(emails, messages)
     return {administrators: [owner, ...administrators], messages}
 }
@@ -70,10 +71,10 @@ async function update(id: string, event: EventDoc): Promise<Response<EventDoc>> 
     }
 }
 
-async function findAll(user: User): Promise<Response<EventDoc[]>> {
-    logger.info(`Fetching all events for ${user.google.email}`)
+async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {
+    logger.info(`Fetching all events for ${user.email}`)
     const events = await EventModel.find(
-        {'administrators.userId': user._id},
+        {'administrators.userId': user.sub},
         {
             _id: false,
             forms: false,

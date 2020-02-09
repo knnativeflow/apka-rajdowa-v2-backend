@@ -1,8 +1,11 @@
-import {Body, Controller, Delete, Get, Post, Put, Route, Tags, Security} from 'tsoa'
-import {EventDoc, EventRequest} from "models/Event"
-import Response from "common/Response";
-import EventService from "service/EventService";
-import {UserModel} from "models/User";
+import {Body, Controller, Delete, Get, Post, Put, Request, Route, Security, Tags} from 'tsoa'
+import {EventDoc} from 'models/Event'
+import Response from 'common/Response'
+import EventService from 'service/EventService'
+import {UserModel} from 'models/User'
+import {ROLE} from 'common/consts'
+import multer from 'multer'
+import AuthRequest from 'common/AuthRequest'
 
 const MOCK_USER = new UserModel({
     google: {
@@ -10,7 +13,7 @@ const MOCK_USER = new UserModel({
         googleId: 'string',
         displayName: 'string',
         photoUrl: 'string',
-        gender: 'string',
+        gender: 'string'
     }
 })
 
@@ -27,14 +30,15 @@ export class EventsApi extends Controller {
      */
     @Security('GOOGLE_TOKEN')
     @Get('/events')
-    public async findAll(): Promise<Response<EventDoc[]>> {
-        return await EventService.findAll(MOCK_USER)
+    public async findAll(@Request() request: AuthRequest): Promise<Response<EventDoc[]>> {
+        return await EventService.findAll(request.user)
     }
 
     /**
      * Find specific event by given id
      *  @param eventId event id
      */
+    @Security('GOOGLE_TOKEN', [ROLE.EVENT_ADMINISTRATOR])
     @Get('/events/{eventId}')
     public async findById(eventId: string): Promise<Response<EventDoc>> {
         return await EventService.findById(eventId)
@@ -43,9 +47,13 @@ export class EventsApi extends Controller {
     /**
      * Create event
      */
+    @Security('GOOGLE_TOKEN')
     @Post('/events')
-    public async create(@Body() event: EventRequest): Promise<Response<EventDoc>> {
-        return await EventService.add(event, null, MOCK_USER)
+    public async create(
+        @Request() request: AuthRequest
+    ): Promise<Response<EventDoc>> {
+        await _handleFile(request)
+        return await EventService.add(request.body, request.file, request.user)
     }
 
     /**
@@ -66,4 +74,16 @@ export class EventsApi extends Controller {
         return await EventService.remove(eventId)
     }
 
+}
+
+function _handleFile(request: AuthRequest): Promise<any> {
+    const multerSingle = multer({dest: 'static/img'}).single('logo')
+    return new Promise((resolve, reject) => {
+        multerSingle(request, undefined, async error => {
+            if (error) {
+                reject(error)
+            }
+            resolve()
+        })
+    })
 }

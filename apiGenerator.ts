@@ -8,13 +8,55 @@ import ts from 'ttypescript/lib/typescript'
         specVersion: 3,
         host: 'localhost:9696',
         schemes: ['http'],
-        outputDirectory: './src/static',
+        outputDirectory: './static',
         controllerPathGlobs: ['./src/api/*'],
         securityDefinitions: {
             GOOGLE_TOKEN: {
                 type: "apiKey",
                 name: "authorization",
                 in: "header"
+            }
+        },
+        "specMerging": "recursive",
+        "spec": {
+            "paths": {
+                "/events": {
+                    "post": {
+                        "consumes": [
+                            "multipart/form-data"
+                        ],
+                        "requestBody": {
+                            "content": {
+                                "multipart/form-data": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "logo": {
+                                                "type": "string",
+                                                "format": "binary"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "emailAlias": {
+                                                "type": "string"
+                                            },
+                                            "startDate": {
+                                                "type": "string"
+                                            },
+                                            "endDate": {
+                                                "type": "string"
+                                            },
+                                            "usersEmails": {
+                                                "type": "[string]"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -27,7 +27,7 @@ export default function (
     } else {
         logger.error(err)
         res.status(500)
-        res.send({ messages: ['Unknown error.'] })
+        res.send({ messages: ['Unknown error :' + JSON.stringify(err)] })
     }
 }
 

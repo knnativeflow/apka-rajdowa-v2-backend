@@ -1,12 +1,8 @@
 import {Document, Schema} from "mongoose";
-
-export enum USER_ROLE {
-    OWNER = 'OWNER',
-    ADMIN = 'ADMIN'
-}
+import {ROLE} from "common/consts";
 
 export interface AdministratorChangeRoleRequest {
-    role: USER_ROLE;
+    role: ROLE;
 }
 
 export interface AdministratorRequest {
@@ -15,7 +11,7 @@ export interface AdministratorRequest {
 
 export interface Administrator {
     userId: string;
-    role: USER_ROLE;
+    role: ROLE;
     email: string;
 }
 
@@ -28,7 +24,7 @@ export const AdministratorSchema = new Schema({
     },
     role: {
         type: String,
-        enum: [USER_ROLE.OWNER, USER_ROLE.ADMIN]
+        enum: [ROLE.EVENT_OWNER, ROLE.EVENT_ADMINISTRATOR]
     },
     email: {
         type: String,

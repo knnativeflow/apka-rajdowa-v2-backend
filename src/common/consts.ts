@@ -1,4 +1,8 @@
-export enum SECURITY  {
-    GOOGLE_TOKEN = 'GOOGLE_TOKEN',
-    USER_PERMISSION = 'USER_PERMISSION'
+export enum SECURITY {
+    GOOGLE_TOKEN = 'GOOGLE_TOKEN'
+}
+
+export enum ROLE {
+    EVENT_OWNER = 'OWNER',
+    EVENT_ADMINISTRATOR = 'ADMIN'
 }

@@ -23,8 +23,8 @@ import path from 'path'
     app.use(requestLogger)
     RegisterRoutes(app)
     app.use(exceptionHandler)
-    app.use('/static', express.static(path.join(__dirname, './static')))
-    app.use('/docs/v1/swagger', swaggerUI.serve, swaggerUI.setup(require('./static/swagger.json')))
+    app.use('/api/v1/static', express.static(path.join(__dirname, '../static')))
+    app.use('/api/v1/swagger', swaggerUI.serve, swaggerUI.setup(require('../static/swagger.json')))
 
     await connectToMongo(config.databaseUrl)
     server.listen(config.port)
