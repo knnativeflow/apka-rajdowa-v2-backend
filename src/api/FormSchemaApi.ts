@@ -9,14 +9,14 @@ export class FormSchemaApi extends Controller {
 
     /**
      * Create new schema
-     * @param id event id
+     * @param eventId event id
      */
-    @Post('/events/{id}/schema')
+    @Post('/events/{eventId}/schema')
     public async create(
-        id: string,
+        eventId: string,
         @Body() payload: FormSchemaRequest
     ): Promise<Response<FormSchemaDoc>> {
-        return await FormSchemaService.create(payload, id)
+        return await FormSchemaService.create(payload, eventId)
     }
 
     /**
@@ -32,7 +32,7 @@ export class FormSchemaApi extends Controller {
      * Get private schema
      * @param id schema id
      */
-    @Get('/schemas/{id}/private')
+    @Get('/schemas/{id}/private') //TODO: to musi być eventId w adresie
     public async getPrivate(id: string): Promise<Response<FormSchemaDoc>> {
         return await FormSchemaService.getPrivate(id)
     }

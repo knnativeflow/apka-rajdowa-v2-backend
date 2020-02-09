@@ -6,12 +6,14 @@ import ts from 'ttypescript/lib/typescript'
         basePath: '/api/v1',
         entryFile: './src/server.ts',
         specVersion: 3,
+        host: 'localhost:9696',
+        schemes: ['http'],
         outputDirectory: './src/static',
         controllerPathGlobs: ['./src/api/*'],
         securityDefinitions: {
-            jwt: {
+            GOOGLE_TOKEN: {
                 type: "apiKey",
-                name: "Authorization",
+                name: "authorization",
                 in: "header"
             }
         }

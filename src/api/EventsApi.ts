@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Post, Put, Route, Tags} from 'tsoa'
+import {Body, Controller, Delete, Get, Post, Put, Route, Tags, Security} from 'tsoa'
 import {EventDoc, EventRequest} from "models/Event"
 import Response from "common/Response";
 import EventService from "service/EventService";
@@ -25,6 +25,7 @@ export class EventsApi extends Controller {
     /**
      * Find all events
      */
+    @Security('GOOGLE_TOKEN')
     @Get('/events')
     public async findAll(): Promise<Response<EventDoc[]>> {
         return await EventService.findAll(MOCK_USER)
@@ -32,11 +33,11 @@ export class EventsApi extends Controller {
 
     /**
      * Find specific event by given id
-     *  @param id event id
+     *  @param eventId event id
      */
-    @Get('/events/{id}')
-    public async findById(id: string): Promise<Response<EventDoc>> {
-        return await EventService.findById(id)
+    @Get('/events/{eventId}')
+    public async findById(eventId: string): Promise<Response<EventDoc>> {
+        return await EventService.findById(eventId)
     }
 
     /**
@@ -49,20 +50,20 @@ export class EventsApi extends Controller {
 
     /**
      * Update event
-     *  @param id event id
+     *  @param eventId event id
      */
-    @Put('/events/{id}')
-    public async update(id: string, @Body() event: EventDoc): Promise<Response<EventDoc>> {
-        return await EventService.update(id, event)
+    @Put('/events/{eventId}')
+    public async update(eventId: string, @Body() event: EventDoc): Promise<Response<EventDoc>> {
+        return await EventService.update(eventId, event)
     }
 
     /**
      * Remove event
-     *  @param id event id
+     *  @param eventId event id
      */
-    @Delete('/events/{id}')
-    public async remove(id: string): Promise<Response<EventDoc>> {
-        return await EventService.remove(id)
+    @Delete('/events/{eventId}')
+    public async remove(eventId: string): Promise<Response<EventDoc>> {
+        return await EventService.remove(eventId)
     }
 
 }

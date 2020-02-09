@@ -4,6 +4,7 @@ import qs from 'qs'
 import {Request as ExpressRequest} from 'express'
 import {ParticipantResponse, Participiant} from "models/Participiant";
 import ParticipiantService, {ACCESS_TYPE} from "service/ParticipiantService";
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 type Record<K,V> = {[p: K]: V}
 
@@ -13,9 +14,10 @@ export class ParticipantApi extends Controller {
 
     /**
      * Add new participant
+     * @param eventId event id
      * @param id form id
      */
-    @Post('/event/{none}/forms/{id}')
+    @Post('/event/{eventId}/forms/{id}')
     public async add(
         id: string,
         @Body() payload: Participiant
@@ -25,9 +27,10 @@ export class ParticipantApi extends Controller {
 
     /**
      * Edit all participants matching the query
+     * @param eventId event id
      * @param id form id
      */
-    @Patch('/event/{none}/forms/{id}/participants')
+    @Patch('/event/{eventId}/forms/{id}/participants')
     public async editMany(
         id: string,
         @Body() payload: Participiant,
@@ -38,10 +41,11 @@ export class ParticipantApi extends Controller {
 
     /**
      * Edit one participant
+     * @param eventId event id
      * @param id form id
      * @param participantId participant id
      */
-    @Patch('/event/{none}/forms/{id}/participants/{participantId}')
+    @Patch('/event/{eventId}/forms/{id}/participants/{participantId}')
     public async editOne(
         id: string,
         participantId: string,
@@ -52,10 +56,11 @@ export class ParticipantApi extends Controller {
 
     /**
      * Get all participants from given form matching given query
+     * @param eventId event id
      * @param id form id
      * @param participantId participant id
      */
-    @Get('/event/{none}/forms/{id}')
+    @Get('/event/{eventId}/forms/{id}')
     public async find(
         id: string,
         @Request() {query}: ExpressRequest
@@ -65,10 +70,11 @@ export class ParticipantApi extends Controller {
 
     /**
      * Remove participant
+     * @param eventId event id
      * @param id form id
      * @param participantId participant id
      */
-    @Delete('/event/{none}/forms/{id}/participants/{participantId}')
+    @Delete('/event/{eventId}/forms/{id}/participants/{participantId}')
     public async remove(
         id: string,
         participantId: string,
