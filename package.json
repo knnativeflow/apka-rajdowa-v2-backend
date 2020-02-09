@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --ignore src/api/_auto/routes.ts --watch src -e ts --exec npm dev-start",
+    "dev": "nodemon --ignore src/api/_auto/routes.ts --watch src -e ts --exec npm run dev-start",
     "dev-start": "npm run tsoaGen && ts-node -r tsconfig-paths/register src/server.ts",
     "tsoaGen": "ts-node -r tsconfig-paths/register apiGenerator.ts",
     "build": "npm run tsoaGen && ttsc && ts-node copyStaticAssets.ts",
