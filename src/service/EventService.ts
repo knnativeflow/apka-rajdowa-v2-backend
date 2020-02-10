@@ -1,5 +1,5 @@
 import fs from 'fs'
-import {EventDoc, EventModel, EventRequest} from 'models/Event'
+import {EventDoc, EventModel, EventRequest, EventUpdateRequest} from 'models/Event'
 import Response from 'common/Response'
 import {byIdQuery} from 'common/utils'
 
@@ -11,8 +11,6 @@ import {Message} from 'common/Message'
 import Exception from 'common/Exception'
 import {ROLE} from 'common/consts'
 import {TokenPayload} from 'google-auth-library'
-
-const uploadDir = process.env.UPLOAD_DIR || 'public/uploads'
 
 async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
@@ -55,17 +53,17 @@ async function remove(id: string): Promise<Response<EventDoc>> {
 
 async function _removeEventLogo(result: EventDoc): Promise<void> {
     const fileName = result.logo.split('/img/')[1]
-    await fs.promises.unlink(`${uploadDir}/${fileName}`)
+    await fs.promises.unlink(`static/img/${fileName}`)
     logger.info(`Removing file : ${fileName}`)
 }
 
-async function update(id: string, event: EventDoc): Promise<Response<EventDoc>> {
+async function update(id: string, event: EventUpdateRequest): Promise<Response<EventDoc>> {
     logger.info(`Updating event with id ${id}`)
     const query = byIdQuery(id)
     const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
 
     if (result) {
-        return new Response(event)
+        return new Response(result)
     } else {
         throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
     }

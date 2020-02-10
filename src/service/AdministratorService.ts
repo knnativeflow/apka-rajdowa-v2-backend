@@ -51,7 +51,7 @@ async function add(eventId: string, payload: AdministratorRequest): Promise<Resp
     if (result) {
         return new Response(result.administrators, 201, messages)
     } else {
-        throw  Exception.fromMessage(`Error during creating new admin for event: ${eventId}`)
+        throw Exception.fromMessage(`Error during creating new admin for event: ${eventId}`)
     }
 }
 

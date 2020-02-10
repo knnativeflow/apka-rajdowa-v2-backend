@@ -10,8 +10,7 @@ import {User} from "models/User";
 export class UserApi extends Controller {
 
     /**
-     * Create new schema
-     * @param id event id
+     * Create an account for a new user or return user data if the account already exist
      */
     @Post('/users')
     public async create(

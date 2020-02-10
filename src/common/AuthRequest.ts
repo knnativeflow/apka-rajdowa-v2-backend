@@ -1,6 +1,9 @@
 import { Request as ExpressRequest } from 'express'
 
-export default interface AuthRequest extends ExpressRequest {
+export interface AuthRequest extends ExpressRequest {
     user: any;
-    file: any; //tODOzsdasd
+}
+
+export interface FileAuthRequest extends AuthRequest{
+    file: any;
 }

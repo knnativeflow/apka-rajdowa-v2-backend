@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Patch, Post, Request, Route, Tags} from 'tsoa'
+import {Body, Controller, Delete, Get, Patch, Post, Request, Route, Security, Tags} from 'tsoa'
 import Response from "common/Response";
 import qs from 'qs'
 import {Request as ExpressRequest} from 'express'
@@ -17,11 +17,12 @@ export class ParticipantApi extends Controller {
      * @param eventId event id
      * @param id form id
      */
-    @Post('/event/{eventId}/forms/{id}')
+    @Post('/events/{eventId}/forms/{id}')
     public async add(
+        eventId: string,
         id: string,
         @Body() payload: Participiant
-    ): Promise<Response<Participiant>> { //TODO: co z tym unknown????
+    ): Promise<Response<Participiant>> {
         return await ParticipiantService.add(id, ACCESS_TYPE.PUBLIC, payload)
     }
 
@@ -30,8 +31,10 @@ export class ParticipantApi extends Controller {
      * @param eventId event id
      * @param id form id
      */
-    @Patch('/event/{eventId}/forms/{id}/participants')
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Patch('/events/{eventId}/forms/{id}/participants')
     public async editMany(
+        eventId: string,
         id: string,
         @Body() payload: Participiant,
         @Request() {query}: ExpressRequest
@@ -45,8 +48,10 @@ export class ParticipantApi extends Controller {
      * @param id form id
      * @param participantId participant id
      */
-    @Patch('/event/{eventId}/forms/{id}/participants/{participantId}')
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Patch('/events/{eventId}/forms/{id}/participants/{participantId}')
     public async editOne(
+        eventId: string,
         id: string,
         participantId: string,
         @Body() payload: Participiant
@@ -60,8 +65,10 @@ export class ParticipantApi extends Controller {
      * @param id form id
      * @param participantId participant id
      */
-    @Get('/event/{eventId}/forms/{id}')
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Get('/events/{eventId}/forms/{id}')
     public async find(
+        eventId: string,
         id: string,
         @Request() {query}: ExpressRequest
     ): Promise<Response<ParticipantResponse>> {
@@ -74,8 +81,10 @@ export class ParticipantApi extends Controller {
      * @param id form id
      * @param participantId participant id
      */
-    @Delete('/event/{eventId}/forms/{id}/participants/{participantId}')
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Delete('/events/{eventId}/forms/{id}/participants/{participantId}')
     public async remove(
+        eventId: string,
         id: string,
         participantId: string,
     ): Promise<Response<Participiant>> {

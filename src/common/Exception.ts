@@ -1,5 +1,4 @@
-import { Message } from './Message'
-import { ErrorCodes } from './errorCodes'
+import {Message} from './Message'
 
 export default class Exception {
     messages: [Message]

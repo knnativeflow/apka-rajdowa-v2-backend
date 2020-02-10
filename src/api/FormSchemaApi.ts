@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Route, Tags} from 'tsoa'
+import {Body, Controller, Get, Post, Route, Security, Tags} from 'tsoa'
 import Response from "common/Response";
 import FormSchemaService from 'service/FormSchemaService'
 import {FormSchemaDoc, FormSchemaRequest} from "models/FormSchema";
@@ -11,6 +11,7 @@ export class FormSchemaApi extends Controller {
      * Create new schema
      * @param eventId event id
      */
+    @Security('GOOGLE_TOKEN', ['OWNER'])
     @Post('/events/{eventId}/schema')
     public async create(
         eventId: string,
@@ -32,6 +33,7 @@ export class FormSchemaApi extends Controller {
      * Get private schema
      * @param id schema id
      */
+    @Security('GOOGLE_TOKEN')
     @Get('/schemas/{id}/private') //TODO: to musi być eventId w adresie
     public async getPrivate(id: string): Promise<Response<FormSchemaDoc>> {
         return await FormSchemaService.getPrivate(id)

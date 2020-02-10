@@ -1,6 +1,12 @@
 import {Document, model, Schema} from 'mongoose'
 import {AdministratorDoc, AdministratorSchema} from "models/Administrator";
 
+export interface EventUpdateRequest {
+    name: string;
+    startDate: string;
+    endDate: string;
+}
+
 export interface EventRequest {
     name: string;
     emailAlias: string;

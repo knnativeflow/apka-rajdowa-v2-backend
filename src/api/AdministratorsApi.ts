@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Patch, Post, Route, Tags} from 'tsoa'
+import {Body, Controller, Delete, Patch, Post, Put, Route, Security, Tags} from 'tsoa'
 import Response from "common/Response";
 import {AdministratorChangeRoleRequest, AdministratorDoc, AdministratorRequest} from "models/Administrator";
 import AdministratorService from "service/AdministratorService";
@@ -12,6 +12,7 @@ export class AdministratorApi extends Controller {
      * @param id event id
      * @param adminId admin id
      */
+    @Security('GOOGLE_TOKEN', ['OWNER'])
     @Delete('/events/{id}/administrators/{adminId}')
     public async remove(id: string, adminId: string): Promise<Response<AdministratorDoc[]>> {
         return await AdministratorService.remove(id, adminId)
@@ -22,7 +23,8 @@ export class AdministratorApi extends Controller {
      * @param id event id
      * @param adminId admin id
      */
-    @Patch('/events/{id}/administrators/{adminId}')
+    @Security('GOOGLE_TOKEN', ['OWNER'])
+    @Put('/events/{id}/administrators/{adminId}')
     public async changeRole(
         id: string,
         adminId: string,
@@ -35,6 +37,7 @@ export class AdministratorApi extends Controller {
      * Create new administrator at given event
      * @param id event id
      */
+    @Security('GOOGLE_TOKEN', ['OWNER'])
     @Post('/events/{id}/administrators')
     public async add(
         id: string,

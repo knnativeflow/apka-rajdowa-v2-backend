@@ -14,7 +14,6 @@ export async function expressAuthentication(request: express.Request, securityNa
         if(scopes?.length > 0) {
             const eventId = request.params['eventId']
             const hasAccess = await UserService.verifyAccessToEvent(eventId, user.sub, scopes[0] as ROLE)
-
             if(!hasAccess)
                 throw Exception.fromMessage(`Nie masz wymaganych uprawnień do wydarzenia: ${eventId}`)
         }
