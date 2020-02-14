@@ -1,13 +1,17 @@
 import {generateRoutes, generateSwaggerSpec, RoutesConfig, SwaggerConfig} from 'tsoa'
 import ts from 'ttypescript/lib/typescript'
+import dotenv from 'dotenv'
 
 (async () => {
+    dotenv.config({ path: '.env' })
+    const isLocal = process.env.NODE_ENV === 'development';
+
     const swaggerOptions: SwaggerConfig = {
         basePath: '/api/v1',
         entryFile: './src/server.ts',
         specVersion: 3,
-        host: 'localhost:9696',
-        schemes: ['http'],
+        host: isLocal ? 'localhost:9696' : 'apka-rajdowa-v2-dev.herokuapp.com',
+        schemes: isLocal ? ['http'] : ['https'],
         outputDirectory: './static',
         controllerPathGlobs: ['./src/api/*'],
         securityDefinitions: {
