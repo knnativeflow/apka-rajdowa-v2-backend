@@ -43,7 +43,9 @@ export class AdministratorApi extends Controller {
         id: string,
         @Body() payload: AdministratorRequest
     ): Promise<Response<AdministratorDoc[]>> {
-        return await AdministratorService.add(id, payload)
+        const response = await AdministratorService.add(id, payload)
+        this.setStatus(201)
+        return response
     }
 
 }

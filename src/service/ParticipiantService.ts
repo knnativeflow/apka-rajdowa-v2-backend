@@ -42,14 +42,14 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     // eslint-disable-next-line @typescript-eslint/camelcase
     const meta = {total, pages, current_page: page}
 
-    return new Response({list, meta}, 200) //TODO: ujednolicić meta response
+    return new Response({list, meta}) //TODO: ujednolicić meta response
 }
 
 async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<Participiant>> {
     const formModel = await _getModel(formSlug, type)
     const result = await formModel.create(data) as Participiant
 
-    return new Response(result, 201)
+    return new Response(result)
 }
 
 async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>): Promise<Response<Participiant[]>> {

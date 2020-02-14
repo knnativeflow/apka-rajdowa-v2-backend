@@ -31,7 +31,7 @@ async function create(
         mongoose.connection.createCollection(`form_${result.slug}`),
         _saveSchemaToEvent(eventId, result.slug)
     ])
-    return new Response(result, 201)
+    return new Response(result)
 }
 
 async function getPublic(slug: string): Promise<Response<FormSchemaDoc>> {
@@ -42,7 +42,7 @@ async function getPublic(slug: string): Promise<Response<FormSchemaDoc>> {
         throw Exception.fromMessage(`Not found schema by slug: ${slug}`, 404)
     } else {
         schema.structure = parseToPublic(schema.structure)
-        return new Response(_parseFormSchema(schema), 200)
+        return new Response(_parseFormSchema(schema))
     }
 }
 
@@ -53,7 +53,7 @@ async function getPrivate(slug: string): Promise<Response<FormSchemaDoc>> {
     if (!schema) {
         throw Exception.fromMessage(`Not found schema by slug: ${slug}`, 404)
     } else {
-        return new Response(_parseFormSchema(schema), 200)
+        return new Response(_parseFormSchema(schema))
     }
 }
 

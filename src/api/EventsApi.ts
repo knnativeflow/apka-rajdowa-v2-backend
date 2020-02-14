@@ -41,7 +41,9 @@ export class EventsApi extends Controller {
         @Request() request: FileAuthRequest
     ): Promise<Response<EventDoc>> {
         await _handleFile(request)
-        return await EventService.add(request.body, request.file, request.user)
+        const response = await EventService.add(request.body, request.file, request.user)
+        this.setStatus(201)
+        return response
     }
 
     /**

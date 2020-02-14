@@ -18,7 +18,7 @@ async function verifyAndCreateUser(token: string): Promise<Response<User | null>
     const result = await UserModel.findOne({'google.email': email})
 
     if(result)
-        return new Response(null, 200)
+        return new Response(null)
 
     logger.info(`Creating new user with name ${name}`)
 
@@ -31,7 +31,7 @@ async function verifyAndCreateUser(token: string): Promise<Response<User | null>
         }
     })
 
-    return new Response(admin, 201)
+    return new Response(admin)
 }
 
 async function verifyTokenAndFetchUserFromGoogle(token: string): Promise<TokenPayload> {

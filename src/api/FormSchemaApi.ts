@@ -17,7 +17,9 @@ export class FormSchemaApi extends Controller {
         eventId: string,
         @Body() payload: FormSchemaRequest
     ): Promise<Response<FormSchemaDoc>> {
-        return await FormSchemaService.create(payload, eventId)
+        const response = await FormSchemaService.create(payload, eventId)
+        this.setStatus(201)
+        return response
     }
 
     /**

@@ -24,7 +24,7 @@ async function add(event: EventRequest, img, user: TokenPayload): Promise<Respon
     }
     const result = await EventModel.create(parsedEvent)
 
-    return new Response(result, 201, messages)
+    return new Response(result,  messages)
 }
 
 async function _prepareAdministrators(

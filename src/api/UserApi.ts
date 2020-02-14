@@ -17,7 +17,9 @@ export class UserApi extends Controller {
         @Request() request: ExpressRequest
     ): Promise<Response<User>> {
         const token = request.headers['authorization']
-        return await UserService.verifyAndCreateUser(token)
+        const response = await UserService.verifyAndCreateUser(token)
+        if(response.data) this.setStatus(201)
+        return response
     }
 
 }
