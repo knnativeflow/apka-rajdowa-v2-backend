@@ -21,7 +21,7 @@ export interface ChangelogDoc extends Document {
     // changeSubject: string; //TODO: co i jak?
 }
 
-const ChangelogSchema = new Schema(
+export const ChangelogSchema = new Schema(
     {
         date: {
             type: String,
