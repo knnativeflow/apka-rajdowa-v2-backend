@@ -2,15 +2,17 @@ import fs from 'fs'
 import {EventDoc, EventModel, EventRequest, EventUpdateRequest} from 'models/Event'
 import Response from 'common/Response'
 import {byIdQuery} from 'common/utils'
-
 import UserService from './AdministratorService'
-
 import {logger} from 'common/logger'
 import {Administrator} from 'models/Administrator'
 import {Message} from 'common/Message'
 import Exception from 'common/Exception'
 import {ROLE} from 'common/consts'
 import {TokenPayload} from 'google-auth-library'
+import ChangesLoggerService, {CHANGE_TYPE} from 'service/ChangesLogerService'
+
+const _logChange = (eventId: string, type: CHANGE_TYPE, entityId: string, change: any, user: TokenPayload): Promise<void> =>
+    ChangesLoggerService.logChange<EventDoc>(EventModel, eventId, type, entityId, change, user)
 
 async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
@@ -23,8 +25,8 @@ async function add(event: EventRequest, img, user: TokenPayload): Promise<Respon
         logo: `/static/img/${img.filename}`
     }
     const result = await EventModel.create(parsedEvent)
-
-    return new Response(result,  messages)
+    await _logChange(result._id, CHANGE_TYPE.ADD, result._id, result, user)
+    return new Response(result, messages)
 }
 
 async function _prepareAdministrators(
@@ -57,16 +59,14 @@ async function _removeEventLogo(result: EventDoc): Promise<void> {
     logger.info(`Removing file : ${fileName}`)
 }
 
-async function update(id: string, event: EventUpdateRequest): Promise<Response<EventDoc>> {
+async function update(id: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Updating event with id ${id}`)
     const query = byIdQuery(id)
     const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
 
-    if (result) {
-        return new Response(result)
-    } else {
-        throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
-    }
+    if(!result) throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
+    await _logChange(result._id, CHANGE_TYPE.EDIT, id, result, user)
+    return new Response(result)
 }
 
 async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {

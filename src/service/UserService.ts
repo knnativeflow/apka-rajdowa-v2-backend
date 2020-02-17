@@ -49,7 +49,7 @@ async function verifyTokenAndFetchUserFromGoogle(token: string): Promise<TokenPa
 async function verifyAccessToEvent(eventId: string, userId: string, role: ROLE): Promise<boolean> {
     const event = await EventModel.findOne(byIdQuery(eventId))
     if(!event)
-        throw Exception.fromMessage(`Nie ma wydarzenia o podanym id: ${eventId}`)
+        throw Exception.fromMessage(`Nie możemy potwierdzić Twojego dostępu do tego wydarzenia. Nie ma wydarzenia o podanym id: ${eventId}`)
 
     return event.administrators.some(
         (admin: AdministratorDoc) => admin.userId === userId && _hasAccess(role, admin.role)

@@ -52,8 +52,12 @@ export class EventsApi extends Controller {
      */
     @Security('GOOGLE_TOKEN', ['OWNER'])
     @Put('/events/{eventId}')
-    public async update(eventId: string, @Body() event: EventUpdateRequest): Promise<Response<EventDoc>> {
-        return await EventService.update(eventId, event)
+    public async update(
+        eventId: string,
+        @Body() event: EventUpdateRequest,
+        @Request() request: AuthRequest
+    ): Promise<Response<EventDoc>> {
+        return await EventService.update(eventId, event, request.user)
     }
 
     /**
