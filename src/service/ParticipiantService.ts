@@ -14,7 +14,7 @@ export enum ACCESS_TYPE {
     PRIVATE = 'private',
     PUBLIC = 'public'
 }
-
+const MONGO_UNIQUE_ERROR = 11000
 const RANGES_ACCESS: ACCESS_TYPE[] = [ACCESS_TYPE.PUBLIC, ACCESS_TYPE.PRIVATE]
 
 type ParticipantDoc = Document
@@ -51,8 +51,23 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
 
 async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
     const formModel = await _getModel(formSlug, type)
-    const result = await formModel.create(data)
-    return new Response(result)
+    try {
+        const result = await formModel.create(data) as Participiant
+        return new Response(result)
+    } catch (e) {
+        await _parseCreateErrors(e, formSlug)
+    }
+}
+
+async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
+    if (e?.name === 'MongoError' && e?.code === MONGO_UNIQUE_ERROR && e?.keyPattern) {
+        const [key, value] = Object.entries(e?.keyPattern)[0]
+        const schema = await FormSchemaModel.findOne(byIdQuery(formSlug))
+        if (!schema) throw e
+        const field = schema.structure[key]
+        if (!field) throw e
+        throw Exception.fromMessage(`Pole: ${field.name} musi mieć unikalną wartość. Mamy już uczestnika w systemie którego ${field.name} jest ${value}`, 422)
+    } else throw e
 }
 
 async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
