@@ -1,7 +1,9 @@
-import {Body, Controller, Delete, Patch, Post, Put, Route, Security, Tags} from 'tsoa'
-import Response from "common/Response";
-import {AdministratorChangeRoleRequest, AdministratorDoc, AdministratorRequest} from "models/Administrator";
-import AdministratorService from "service/AdministratorService";
+import {Body, Controller, Delete, Post, Put, Request, Route, Security, Tags} from 'tsoa'
+import Response from 'common/Response'
+import {AdministratorChangeRoleRequest, AdministratorRequest} from 'models/Administrator'
+import AdministratorService from 'service/AdministratorService'
+import {AuthRequest} from 'common/AuthRequest'
+import {EventDoc} from 'models/Event'
 
 @Route()
 @Tags('Administrators')
@@ -14,8 +16,8 @@ export class AdministratorApi extends Controller {
      */
     @Security('GOOGLE_TOKEN', ['OWNER'])
     @Delete('/events/{id}/administrators/{adminId}')
-    public async remove(id: string, adminId: string): Promise<Response<AdministratorDoc[]>> {
-        return await AdministratorService.remove(id, adminId)
+    public async remove(id: string, adminId: string, @Request() request: AuthRequest): Promise<Response<EventDoc>> {
+        return await AdministratorService.remove(id, adminId, request.user)
     }
 
     /**
@@ -28,9 +30,10 @@ export class AdministratorApi extends Controller {
     public async changeRole(
         id: string,
         adminId: string,
-        @Body() payload: AdministratorChangeRoleRequest
-    ): Promise<Response<AdministratorDoc[]>> {
-        return await AdministratorService.changeRole(id, adminId, payload.role)
+        @Body() payload: AdministratorChangeRoleRequest,
+        @Request() request: AuthRequest
+    ): Promise<Response<EventDoc>> {
+        return await AdministratorService.changeRole(id, adminId, payload.role, request.user)
     }
 
     /**
@@ -41,9 +44,10 @@ export class AdministratorApi extends Controller {
     @Post('/events/{id}/administrators')
     public async add(
         id: string,
-        @Body() payload: AdministratorRequest
-    ): Promise<Response<AdministratorDoc[]>> {
-        const response = await AdministratorService.add(id, payload)
+        @Body() payload: AdministratorRequest,
+        @Request() request: AuthRequest
+    ): Promise<Response<EventDoc>> {
+        const response = await AdministratorService.add(id, payload, request.user)
         this.setStatus(201)
         return response
     }

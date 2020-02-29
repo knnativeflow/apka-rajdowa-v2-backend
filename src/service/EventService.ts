@@ -9,11 +9,8 @@ import {Message} from 'common/Message'
 import Exception from 'common/Exception'
 import {ROLE} from 'common/consts'
 import {TokenPayload} from 'google-auth-library'
-import ChangesLoggerService, {CHANGE_TYPE} from 'service/ChangesLogerService'
-import mongoose from "mongoose"
-
-const _logChange = (eventId: string, type: CHANGE_TYPE, entityId: string, change: any, user: TokenPayload): Promise<void> =>
-    ChangesLoggerService.logChange<EventDoc>(EventModel, eventId, type, entityId, change, user)
+import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
+import mongoose from 'mongoose'
 
 async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
@@ -27,7 +24,6 @@ async function add(event: EventRequest, img, user: TokenPayload): Promise<Respon
     }
     const result = await EventModel.create(parsedEvent)
     await mongoose.connection.createCollection(`changelog_${result.slug}`)
-    _logChange(result._id, CHANGE_TYPE.ADD, result._id, result, user)
     return new Response(result, messages)
 }
 
@@ -57,13 +53,21 @@ async function _removeEventLogo(result: EventDoc): Promise<void> {
     logger.info(`Removing file : ${fileName}`)
 }
 
-async function update(id: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
-    logger.info(`Updating event with id ${id}`)
-    const query = byIdQuery(id)
-    const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
-    if (!result) throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
-    _logChange(result._id, CHANGE_TYPE.EDIT, id, result, user)
-    return new Response(result)
+async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
+    return clog.methodWithChangelog(
+        EventModel,
+        eventId,
+        user,
+        eventId,
+        CHANGE_TYPE.EDIT,
+        'Zmiana ustawień wydarzenia',
+        async () => {
+            logger.info(`Updating event with id ${eventId}`)
+            const query = byIdQuery(eventId)
+            const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
+            if (!result) throw Exception.fromMessage(`Event with id ${eventId} doesn't exist`)
+            return new Response(result)
+        })
 }
 
 async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {

@@ -4,11 +4,12 @@ import {config} from 'config/config'
 
 export class Changelog {
     constructor(
-        private readonly user: string, //TODO: rozszerzyc typ
-        private readonly previousState: any,
-        private readonly actualState: any,
-        private readonly changeType: CHANGE_TYPE,
-        private readonly createdAt: string = Date().toString()
+        readonly user: string, //TODO: rozszerzyc typ
+        readonly previousState: any,
+        readonly actualState: any,
+        readonly changeType: CHANGE_TYPE,
+        readonly description: string,
+        readonly createdAt: string = Date().toString()
     ) {
     }
 }
@@ -19,7 +20,7 @@ export interface ChangelogDoc extends Document {
     previousState: any;
     actualState: any;
     changeType: CHANGE_TYPE;
-    // changeSubject: string; //TODO: co i jak?
+    description: string;
 }
 
 export const ChangelogSchema = new Schema(
@@ -44,6 +45,10 @@ export const ChangelogSchema = new Schema(
         changeType: {
             type: String,
             required: true
+        },
+        description: {
+            type: String,
+            required: true
         }
     },
     {
@@ -51,5 +56,3 @@ export const ChangelogSchema = new Schema(
         collection: 'changelog'
     }
 )
-
-export const ChangelogModel = model<ChangelogDoc>('ChangelogDoc', ChangelogSchema)
