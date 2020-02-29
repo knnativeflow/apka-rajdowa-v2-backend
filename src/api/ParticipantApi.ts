@@ -14,12 +14,10 @@ export class ParticipantApi extends Controller {
 
     /**
      * Add new participant
-     * @param eventId event id
      * @param id form id
      */
-    @Post('/events/{eventId}/forms/{id}')
+    @Post('/forms/{id}')
     public async add(
-        eventId: string,
         id: string,
         @Body() payload: Participiant
     ): Promise<Response<Participiant>> {
