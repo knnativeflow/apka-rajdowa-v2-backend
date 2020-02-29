@@ -1,7 +1,25 @@
 import {Document, model, Schema} from 'mongoose'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export type Structure = Record<string, string>
+export type Structure = Record<string, FieldDefinition>
+
+export interface FieldDefinition {
+    type: FieldType;
+    enum?: string[];
+    htmlType?: string;
+    unique?: boolean;
+    isHidden?: boolean;
+    required?: boolean;
+    default?: any;
+    description?: string;
+    tooltip?: string;
+}
+
+export enum FieldType {
+    STRING = 'string',
+    NUMBER = 'number',
+    BOOLEAN = 'boolean'
+}
 
 export interface FormSchemaRequest {
     details: {

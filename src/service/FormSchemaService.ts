@@ -3,8 +3,8 @@ import {FormSchemaDoc, FormSchemaModel, FormSchemaRequest} from 'models/FormSche
 import {EventModel} from 'models/Event'
 import {logger} from 'common/logger'
 import {byIdQuery} from 'common/utils'
-import Response from "common/Response";
-import Exception from "common/Exception";
+import Response from 'common/Response'
+import Exception from 'common/Exception'
 
 const DB_FIELD_KEYS_TO_FRONT_KEYS = {
     name: 'label',
@@ -28,10 +28,18 @@ async function create(
         structure: schema
     })
     await Promise.all([
-        mongoose.connection.createCollection(`form_${result.slug}`),
+        _createCollection(result),
         _saveSchemaToEvent(eventId, result.slug)
     ])
     return new Response(result)
+}
+
+async function _createCollection(schema: FormSchemaDoc): Promise<void> {
+    const collection = await mongoose.connection.createCollection(`form_${schema.slug}`)
+    const uniqFields = Object.entries(schema.structure)
+        .map(([key, definition]) => definition.unique ? key : null)
+        .filter(it => it !== null)
+    await Promise.all(uniqFields.map(async k => await collection.createIndex({[k]: 1}, {unique: true})))
 }
 
 async function getPublic(slug: string): Promise<Response<FormSchemaDoc>> {
