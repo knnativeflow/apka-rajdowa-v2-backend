@@ -22,7 +22,7 @@ by `NativeFlow`
 
 
 ## Dynamic schema
-```$javascript
+```javascript
     //pole tekstowe
     field1: { type: 'string' },
 
