@@ -1,4 +1,4 @@
-import mongoose, {Document, model, Model, Schema} from 'mongoose'
+import mongoose, {Document, DocumentQuery, model, Model, Schema} from 'mongoose'
 import {TokenPayload} from 'google-auth-library'
 import {byIdQuery, isObjectID} from 'common/utils'
 import {Changelog, ChangelogDoc, ChangelogSchema} from 'models/Changelog'
@@ -7,7 +7,19 @@ import Response from 'common/Response'
 import {EventModel} from 'models/Event'
 import Exception, {isException} from 'common/Exception'
 
-async function methodWithChangelog<T extends Document>(
+async function methodWithMultipleChangelog<T extends Document>(
+    model: Model<T>,
+    eventId: string,
+    user: TokenPayload,
+    query: Record<string, string>,
+    type: CHANGE_TYPE,
+    description: string,
+    method: () => Promise<Response<T[]>>
+): Promise<Response<T[]>> {
+    return _methodWithChangelog<T[]>(model.find(query), eventId, user, type, description, method)
+}
+
+async function methodWithSingleChangelog<T extends Document>(
     model: Model<T>,
     eventId: string,
     user: TokenPayload,
@@ -16,10 +28,21 @@ async function methodWithChangelog<T extends Document>(
     description: string,
     method: () => Promise<Response<T>>
 ): Promise<Response<T>> {
+   return _methodWithChangelog<T>(model.findOne(byIdQuery(entityId)), eventId, user, type, description, method)
+}
+
+async function _methodWithChangelog<T>(
+    previousPromise: DocumentQuery<unknown, any>,
+    eventId: string,
+    user: TokenPayload,
+    type: CHANGE_TYPE,
+    description: string,
+    method: () => Promise<Response<T>>
+): Promise<Response<T>> {
     try {
         const changelogModel = await _getEventChangelogModel(eventId)
         if (type === CHANGE_TYPE.EDIT) {
-            const previous = await model.findOne(byIdQuery(entityId))
+            const previous = await previousPromise
             const result = await method()
             const record = new Changelog(user.email, previous, result.data, type, description)
             await changelogModel.create(record)
@@ -30,7 +53,7 @@ async function methodWithChangelog<T extends Document>(
             await changelogModel.create(record)
             return result
         } else {
-            const previous = await model.findOne(byIdQuery(entityId))
+            const previous = await previousPromise
             const result = await method()
             const record = new Changelog(user.email, previous, null, type, description)
             await changelogModel.create(record)
@@ -42,6 +65,7 @@ async function methodWithChangelog<T extends Document>(
         throw Exception.fromMessage(`Wystąpił problem podczas generowania Changeloga, nie mogliśmy zapisać zmian!`)
     }
 }
+
 
 export enum CHANGE_TYPE {
     ADD = 'ADD',
@@ -81,5 +105,6 @@ async function _getEventSlug(eventId: string): Promise<string> {
 
 export default {
     findAllLogs,
-    methodWithChangelog
+    methodWithSingleChangelog,
+    methodWithMultipleChangelog
 }

@@ -35,12 +35,10 @@ export const ChangelogSchema = new Schema(
             required: true
         },
         previousState: {
-            type: Object,
-            required: true
+            type: Object
         },
         actualState: {
-            type: Object,
-            required: true
+            type: Object
         },
         changeType: {
             type: String,

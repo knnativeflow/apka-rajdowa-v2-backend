@@ -54,7 +54,7 @@ async function _removeEventLogo(result: EventDoc): Promise<void> {
 }
 
 async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
-    return clog.methodWithChangelog(
+    return clog.methodWithSingleChangelog(
         EventModel,
         eventId,
         user,

@@ -11,7 +11,7 @@ import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import {TokenPayload} from 'google-auth-library'
 
 async function remove(eventId: string, adminId: string, user: TokenPayload): Promise<Response<EventDoc>> {
-    return clog.methodWithChangelog(
+    return clog.methodWithSingleChangelog(
         EventModel,
         eventId,
         user,
@@ -31,7 +31,7 @@ async function remove(eventId: string, adminId: string, user: TokenPayload): Pro
 }
 
 async function changeRole(eventId: string, adminId: string, newRole: ROLE, user: TokenPayload): Promise<Response<EventDoc>> {
-    return clog.methodWithChangelog(
+    return clog.methodWithSingleChangelog(
         EventModel,
         eventId,
         user,
@@ -51,7 +51,7 @@ async function changeRole(eventId: string, adminId: string, newRole: ROLE, user:
 }
 
 async function add(eventId: string, payload: AdministratorRequest, user: TokenPayload): Promise<Response<EventDoc>> {
-    return clog.methodWithChangelog(
+    return clog.methodWithSingleChangelog(
         EventModel,
         eventId,
         user,
