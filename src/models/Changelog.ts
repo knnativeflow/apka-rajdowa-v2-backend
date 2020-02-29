@@ -1,5 +1,6 @@
 import {Document, model, Schema} from 'mongoose'
 import {CHANGE_TYPE} from 'service/ChangesLogerService'
+import {config} from 'config/config'
 
 export class Changelog {
     constructor(
@@ -7,13 +8,13 @@ export class Changelog {
         private readonly previousState: any,
         private readonly actualState: any,
         private readonly changeType: CHANGE_TYPE,
-        private readonly date: string = Date().toString()
+        private readonly createdAt: string = Date().toString()
     ) {
     }
 }
 
 export interface ChangelogDoc extends Document {
-    date: string;
+    createdAt: string;
     user: string; //TODO: rozszerzyc typ
     previousState: any;
     actualState: any;
@@ -23,9 +24,10 @@ export interface ChangelogDoc extends Document {
 
 export const ChangelogSchema = new Schema(
     {
-        date: {
-            type: String,
-            required: true
+        createdAt: {
+            type: Date,
+            required: true,
+            expires: config.changelogExpireTime
         },
         user: {
             type: String,
