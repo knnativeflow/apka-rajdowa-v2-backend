@@ -1,6 +1,9 @@
 # Apka Rajdowa v2 Backend 
 by `NativeFlow` 
 
+## Doc
+* swagger -> https://apka-rajdowa-v2-dev.herokuapp.com/api/v1/swagger/
+
 ## The architecture concept of this application is based on the following frameworks : 
 
 * `Express` - https://expressjs.com/
