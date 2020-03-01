@@ -2,15 +2,15 @@ import fs from 'fs'
 import {EventDoc, EventModel, EventRequest, EventUpdateRequest} from 'models/Event'
 import Response from 'common/Response'
 import {byIdQuery} from 'common/utils'
-
 import UserService from './AdministratorService'
-
 import {logger} from 'common/logger'
 import {Administrator} from 'models/Administrator'
 import {Message} from 'common/Message'
 import Exception from 'common/Exception'
 import {ROLE} from 'common/consts'
 import {TokenPayload} from 'google-auth-library'
+import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
+import mongoose from 'mongoose'
 
 async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
@@ -23,8 +23,8 @@ async function add(event: EventRequest, img, user: TokenPayload): Promise<Respon
         logo: `/static/img/${img.filename}`
     }
     const result = await EventModel.create(parsedEvent)
-
-    return new Response(result,  messages)
+    await mongoose.connection.createCollection(`changelog_${result.slug}`)
+    return new Response(result, messages)
 }
 
 async function _prepareAdministrators(
@@ -42,13 +42,9 @@ async function remove(id: string): Promise<Response<EventDoc>> {
     logger.info(`Deleting event : ${id}`)
     const query = byIdQuery(id)
     const result = await EventModel.findOneAndDelete(query)
-
-    if (result) {
-        await _removeEventLogo(result)
-        return new Response(result)
-    } else {
-        throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
-    }
+    if (!result) throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
+    await _removeEventLogo(result)
+    return new Response(result)
 }
 
 async function _removeEventLogo(result: EventDoc): Promise<void> {
@@ -57,16 +53,21 @@ async function _removeEventLogo(result: EventDoc): Promise<void> {
     logger.info(`Removing file : ${fileName}`)
 }
 
-async function update(id: string, event: EventUpdateRequest): Promise<Response<EventDoc>> {
-    logger.info(`Updating event with id ${id}`)
-    const query = byIdQuery(id)
-    const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
-
-    if (result) {
-        return new Response(result)
-    } else {
-        throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
-    }
+async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
+    return clog.methodWithSingleChangelog(
+        EventModel,
+        eventId,
+        user,
+        eventId,
+        CHANGE_TYPE.EDIT,
+        'Zmiana ustawień wydarzenia',
+        async () => {
+            logger.info(`Updating event with id ${eventId}`)
+            const query = byIdQuery(eventId)
+            const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
+            if (!result) throw Exception.fromMessage(`Event with id ${eventId} doesn't exist`)
+            return new Response(result)
+        })
 }
 
 async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {
@@ -88,7 +89,6 @@ async function findById(id: string): Promise<Response<EventDoc>> {
     logger.info(`Fetching event ${id} details`)
     const query = byIdQuery(id)
     const result = await EventModel.findOne(query)
-
     return new Response(result)
 }
 

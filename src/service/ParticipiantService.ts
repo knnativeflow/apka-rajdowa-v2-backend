@@ -1,10 +1,13 @@
 import mongoose, {Document, Model, model, Schema} from 'mongoose'
 import {FormSchemaModel} from 'models/FormSchema'
 import FormSchemaService from 'service/FormSchemaService'
-import Exception from "common/Exception";
-import Response from "common/Response";
-import {ParticipantResponse, Participiant} from "models/Participiant";
-import {Query} from "models/Query";
+import Exception from 'common/Exception'
+import Response from 'common/Response'
+import {ParticipantResponse, Participiant} from 'models/Participiant'
+import {Query} from 'models/Query'
+import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
+import {EventModel} from 'models/Event'
+import {TokenPayload} from 'google-auth-library'
 
 export enum ACCESS_TYPE {
     PRIVATE = 'private',
@@ -45,48 +48,65 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     return new Response({list, meta}) //TODO: ujednolicić meta response
 }
 
-async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<Participiant>> {
+async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
     const formModel = await _getModel(formSlug, type)
-    const result = await formModel.create(data) as Participiant
-
+    const result = await formModel.create(data)
     return new Response(result)
 }
 
-async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>): Promise<Response<Participiant[]>> {
+async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
     const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
-    const result = await formModel.updateMany(query, data)
-
-    if (result && result.acknowledged) {
-        return new Response(result)
-    } else {
-        throw Exception.fromMessage(`No Participants were found by given query ${query}`)
-    }
-}
-
-async function editOne(formId: string, participantId: string, data: Record<string, string>): Promise<Response<Participiant>> {
-    const formModel = await _getModel(formId, ACCESS_TYPE.PRIVATE)
-    const result = await formModel.findOneAndUpdate(
-        {_id: participantId},
-        data,
-        {new: true}
+    const eventId = await _getEventIdFromFormId(formSlug)
+    return clog.methodWithMultipleChangelog(
+        formModel,
+        eventId,
+        user,
+        query,
+        CHANGE_TYPE.EDIT,
+        'Zmiana wielu uczestników',
+        async () => {
+            const allMatching = await formModel.find(query)
+            const ids = allMatching.map<string>(p => p._id)
+            const result = await formModel.updateMany(query, data)
+            if (result?.nModified <= 0) throw Exception.fromMessage(`No Participants were found by given query ${query}`)
+            const updatedResult = await formModel.find({_id: {$in: ids}})
+            return new Response(updatedResult)
+        }
     )
-
-    if (result) {
-        return new Response(result)
-    } else {
-        throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
-    }
 }
 
-async function remove(formId: string, participantId: string): Promise<Response<Participiant>> {
+async function editOne(formId: string, participantId: string, data: Record<string, string>, user: TokenPayload): Promise<Response<Participiant>> {
     const formModel = await _getModel(formId, ACCESS_TYPE.PRIVATE)
-    const result = await formModel.findOneAndDelete({_id: participantId})
+    const eventId = await _getEventIdFromFormId(formId)
+    return clog.methodWithSingleChangelog(
+        formModel,
+        eventId,
+        user,
+        participantId,
+        CHANGE_TYPE.EDIT,
+        'Zmiana uczestnika',
+        async () => {
+            const result = await formModel.findOneAndUpdate({_id: participantId}, data, {new: true})
+            if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
+            return new Response(result)
+        })
+}
 
-    if (result) {
-        return new Response(result)
-    } else {
-        throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
-    }
+async function remove(formId: string, participantId: string, user: TokenPayload): Promise<Response<Participiant>> {
+    const formModel = await _getModel(formId, ACCESS_TYPE.PRIVATE)
+    const eventId = await _getEventIdFromFormId(formId)
+    return clog.methodWithSingleChangelog(
+        formModel,
+        eventId,
+        user,
+        participantId,
+        CHANGE_TYPE.REMOVE,
+        'Usunięcie uczestnika',
+        async () => {
+            const result = await formModel.findOneAndDelete({_id: participantId})
+            if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
+            return new Response(result)
+        })
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
@@ -146,6 +166,14 @@ function _prepareFilters(query: Query): { [p: string]: { $in: string[] } | { $re
             ? {$in: query.filters[key]}
             : {$regex: `^${query.filters[key][0]}`, $options: 'i'}
     }), {})
+}
+
+async function _getEventIdFromFormId(formId: string): Promise<string> {
+    const result = await EventModel.findOne({
+        'forms': formId
+    })
+    if(!result) throw Exception.fromMessage(`Nie ma wydarzenia powiązanego z podanym formularzem: ${formId}`)
+    return result._id
 }
 
 export default {

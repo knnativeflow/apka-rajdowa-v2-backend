@@ -8,6 +8,7 @@ export interface Config {
     databaseUrl: string;
     secretKey: string;
     googleClientId: string;
+    changelogExpireTime: number;
 }
 
 export const config: Config = {
@@ -15,5 +16,6 @@ export const config: Config = {
     debugLogging: process.env.NODE_ENV == 'development',
     databaseUrl: process.env.DATABASE_URL,
     googleClientId: process.env.GOOGLE_CLIENT_ID,
-    secretKey: process.env.SECRET_KEY || 'missing-key'
+    secretKey: process.env.SECRET_KEY || 'missing-key',
+    changelogExpireTime: +process.env.CHANGELOG_EXPIRE_TIME || 3600
 }

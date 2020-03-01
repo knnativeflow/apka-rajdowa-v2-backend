@@ -19,3 +19,7 @@ export default class Exception {
         .join('; ')
     }
 }
+
+export function isException(obj: Exception | unknown): obj is Exception {
+    return obj.hasOwnProperty('messages') && obj.hasOwnProperty('httpCode')
+}

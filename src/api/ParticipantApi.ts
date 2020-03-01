@@ -4,6 +4,7 @@ import qs from 'qs'
 import {Request as ExpressRequest} from 'express'
 import {ParticipantResponse, Participiant} from "models/Participiant";
 import ParticipiantService, {ACCESS_TYPE} from "service/ParticipiantService";
+import {AuthRequest} from 'common/AuthRequest'
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 type Record<K,V> = {[p: K]: V}
@@ -37,9 +38,9 @@ export class ParticipantApi extends Controller {
         eventId: string,
         id: string,
         @Body() payload: Participiant,
-        @Request() {query}: ExpressRequest
+        @Request() request: AuthRequest
     ): Promise<Response<Participiant[]>> {
-        return await ParticipiantService.edit(id, qs.parse(query), payload)
+        return await ParticipiantService.edit(id, qs.parse(request.query), payload, request.user)
     }
 
     /**
@@ -54,9 +55,10 @@ export class ParticipantApi extends Controller {
         eventId: string,
         id: string,
         participantId: string,
-        @Body() payload: Participiant
+        @Body() payload: Participiant,
+        @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
-        return await ParticipiantService.editOne(id, participantId, payload)
+        return await ParticipiantService.editOne(id, participantId, payload, request.user)
     }
 
     /**
@@ -87,8 +89,9 @@ export class ParticipantApi extends Controller {
         eventId: string,
         id: string,
         participantId: string,
+        @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
-        return await ParticipiantService.remove(id, participantId)
+        return await ParticipiantService.remove(id, participantId, request.user)
     }
 
 }
