@@ -2,7 +2,9 @@ import {Document} from 'mongoose'
 
 export type Participiant = Record<string, any>
 
-export type ParticipiantDoc = Document
+export interface ParticipiantDoc extends Document {
+    [x: string]: any;
+}
 
 export interface ParticipantResponse {
     meta: {
