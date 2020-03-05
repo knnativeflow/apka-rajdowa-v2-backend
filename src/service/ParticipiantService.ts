@@ -30,8 +30,8 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     const fields = _prepareFields(query)
     const sort = _prepareSortConditions(query)
 
-    const listPromise = mongoose.connection.collection(`form_${formSlug}`)
-        .find(filters, fields)
+        const listPromise = mongoose.connection.collection(`form_${formSlug}`)
+            .find(filters, fields)
         .skip((page - 1) * count)
         .limit(count)
         .sort(sort)
