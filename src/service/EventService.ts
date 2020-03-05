@@ -1,7 +1,7 @@
 import fs from 'fs'
-import {EventDoc, EventModel, EventRequest, EventUpdateRequest} from 'models/Event'
+import {EventDoc, EventModel, EventRequest, EventUpdateRequest, EventPublicDoc} from 'models/Event'
 import Response from 'common/Response'
-import {byIdQuery} from 'common/utils'
+import {byIdQuery, getEventIdFromFormId} from 'common/utils'
 import UserService from './AdministratorService'
 import {logger} from 'common/logger'
 import {Administrator} from 'models/Administrator'
@@ -92,10 +92,18 @@ async function findById(id: string): Promise<Response<EventDoc>> {
     return new Response(result)
 }
 
+async function findPublicByFormId(formId: string): Promise<Response<EventPublicDoc>> {
+    logger.info(`Fetching public event data for ${formId} form`)
+    const query = await getEventIdFromFormId(formId)
+    const result = await EventModel.findOne(query, 'name startDate endDate logo')
+    return new Response(result)
+}
+
 export default {
     add,
     remove,
     update,
     findAll,
-    findById
+    findById,
+    findPublicByFormId,
 }

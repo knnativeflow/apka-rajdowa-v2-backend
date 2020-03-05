@@ -15,15 +15,22 @@ export interface EventRequest {
     usersEmails: string[];
 }
 
-export interface EventDoc extends Document{
-    administrators: AdministratorDoc[];
-    forms: string[];
+export interface EventPublicDoc extends Document{
     name: string;
-    emailAlias: string;
     startDate: string;
     endDate: string;
     logo: string;
-    slug: string;
+}
+
+export interface EventDoc extends Document{
+   administrators: AdministratorDoc[];
+   forms: string[];
+   name: string;
+   emailAlias: string;
+   startDate: string;
+   endDate: string;
+   logo: string;
+   slug: string;
 }
 
 const EventSchema = new Schema(
