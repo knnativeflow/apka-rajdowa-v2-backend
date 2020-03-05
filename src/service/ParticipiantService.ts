@@ -8,6 +8,7 @@ import {Query} from 'models/Query'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import {EventModel} from 'models/Event'
 import {TokenPayload} from 'google-auth-library'
+import {getEventIdFromFormId} from 'common/utils'
 
 export enum ACCESS_TYPE {
     PRIVATE = 'private',
@@ -56,7 +57,7 @@ async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Pro
 
 async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
     const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
-    const eventId = await _getEventIdFromFormId(formSlug)
+    const eventId = await getEventIdFromFormId(formSlug)
     return clog.methodWithMultipleChangelog(
         formModel,
         eventId,
@@ -77,7 +78,7 @@ async function edit(formSlug: string, query: Record<string, string>, data: Recor
 
 async function editOne(formId: string, participantId: string, data: Record<string, string>, user: TokenPayload): Promise<Response<Participiant>> {
     const formModel = await _getModel(formId, ACCESS_TYPE.PRIVATE)
-    const eventId = await _getEventIdFromFormId(formId)
+    const eventId = await getEventIdFromFormId(formId)
     return clog.methodWithSingleChangelog(
         formModel,
         eventId,
@@ -94,7 +95,7 @@ async function editOne(formId: string, participantId: string, data: Record<strin
 
 async function remove(formId: string, participantId: string, user: TokenPayload): Promise<Response<Participiant>> {
     const formModel = await _getModel(formId, ACCESS_TYPE.PRIVATE)
-    const eventId = await _getEventIdFromFormId(formId)
+    const eventId = await getEventIdFromFormId(formId)
     return clog.methodWithSingleChangelog(
         formModel,
         eventId,
@@ -166,14 +167,6 @@ function _prepareFilters(query: Query): { [p: string]: { $in: string[] } | { $re
             ? {$in: query.filters[key]}
             : {$regex: `^${query.filters[key][0]}`, $options: 'i'}
     }), {})
-}
-
-async function _getEventIdFromFormId(formId: string): Promise<string> {
-    const result = await EventModel.findOne({
-        'forms': formId
-    })
-    if(!result) throw Exception.fromMessage(`Nie ma wydarzenia powiązanego z podanym formularzem: ${formId}`)
-    return result._id
 }
 
 export default {
