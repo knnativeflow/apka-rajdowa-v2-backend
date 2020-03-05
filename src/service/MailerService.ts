@@ -2,6 +2,7 @@ import nodemailer, {Transporter} from 'nodemailer'
 import {Message} from 'common/Message'
 import Response from 'common/Response'
 import mongoose from 'mongoose'
+import {ParticipiantDoc} from 'models/Participiant'
 
 export interface MailRequest {
     receivers: string[];
@@ -11,23 +12,31 @@ export interface MailRequest {
 
 async function send(formId: string, mailRequest: MailRequest): Promise<Response<string>> {
     const transporter = await _generateTestTransporter()
-    const receiversEmails = await _getReceiversEmails(formId, mailRequest.receivers)
-    const sendRequests = receiversEmails.map(email =>
-        transporter.sendMail({
+    const receivers = await _getReceivers(formId, mailRequest.receivers)
+    const sendRequests = receivers.map(receiver => {
+        const mailBody = _replaceKeysWithParticipantData(receiver, mailRequest.body)
+        return transporter.sendMail({
             from: '"Organizatorzy rajdu👻" <rajd@example.com>',
-            to: email,
+            to: receiver.field_0,
             subject: mailRequest.subject,
-            html: mailRequest.body
+            html: mailBody
         })
+    }
     )
     const results = await Promise.all(sendRequests)
     const messages = results.map(r => Message.info(nodemailer.getTestMessageUrl(r).toString()))
     return new Response('success', messages)
 }
 
-async function _getReceiversEmails(formId: string, receiversIds: string[]): Promise<string[]> {
+function _replaceKeysWithParticipantData(participant: ParticipiantDoc, mailBody: string): string {
+    return Object.keys(participant)
+        .filter(k => k.startsWith('field'))
+        .reduce((acc, key) => acc.replace(new RegExp(`{${key}}`, 'g'), participant[key]), mailBody)
+}
+
+async function _getReceivers(formId: string, receiversIds: string[]): Promise<ParticipiantDoc[]> {
     const participants = await mongoose.connection.collection(`form_${formId}`).find({}).toArray()
-    return receiversIds.map(id => participants.find(p => p._id.toString() === id)?.field_0).filter(it => it !== undefined)
+    return receiversIds.map(id => participants.find(p => p._id.toString() === id)).filter(it => it !== undefined)
 }
 
 async function _generateTestTransporter(): Promise<Transporter> {
