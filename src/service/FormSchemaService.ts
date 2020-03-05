@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
-import {FormSchemaDoc, FormSchemaModel, FormSchemaRequest} from 'models/FormSchema'
-import {EventModel} from 'models/Event'
-import {logger} from 'common/logger'
-import {byIdQuery} from 'common/utils'
+import { FormSchemaDoc, FormSchemaModel, FormSchemaRequest } from 'models/FormSchema'
+import { EventModel } from 'models/Event';
+import { logger } from 'common/logger'
+import { byIdQuery } from 'common/utils'
 import Response from "common/Response";
 import Exception from "common/Exception";
 
@@ -14,7 +14,7 @@ const DB_FIELD_KEYS_TO_FRONT_KEYS = {
 }
 
 async function create(
-    {details, schema}: FormSchemaRequest,
+    { details, schema }: FormSchemaRequest,
     eventId: string
 ): Promise<Response<FormSchemaDoc>> {
     logger.info(`Creating new schema : ${details.name}`)
@@ -62,7 +62,7 @@ async function _saveSchemaToEvent(eventId: string, schemaSlug: string): Promise<
 
     const result = await EventModel.findOneAndUpdate(
         byIdQuery(eventId),
-        {$push: {forms: schemaSlug}}
+        { $push: { forms: schemaSlug } }
     )
     if (!result) {
         throw Exception.fromMessage(`There is no event with given id : ${eventId}`)
@@ -81,7 +81,7 @@ function parseToPublic(schemaStructure: any): any {
         ), {})
 }
 
-function _parseFormSchema({structure, ...rest}: FormSchemaDoc): FormSchemaDoc {
+function _parseFormSchema({ structure, ...rest }: FormSchemaDoc): FormSchemaDoc {
     return {
         ...rest,
         structure: Object.keys(structure)
