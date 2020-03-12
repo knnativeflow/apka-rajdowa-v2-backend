@@ -27,14 +27,17 @@ function _parseException(err: Exception, res: ExpressResponse): void {
 
 function _parseValidationError(err: ValidatorError, res: ExpressResponse): void {
     const errorMsgs = Object.entries(err.errors)
-        .map(([,fieldError]) => fieldError.kind === 'required' ? `Pole ${fieldError.path} jest wymagane!`: '')
+        .map(([,fieldError]) =>{
+            if(fieldError.kind === 'required') return `Pole ${fieldError.path} jest wymagane!`
+            if(fieldError.kind === 'enum') return `Wartość ${fieldError.value} nie jest poprawną wartością dla pola ${fieldError.path}`
+        })
+    console.log(errorMsgs)
     const msg = errorMsgs.join('\n')
     res.status(422).send({messages: [msg]})
 }
 
 function _parseNamedError(err: NamedError, res: ExpressResponse): void {
     const msg = `${err.name}: ${(err as any).message}`
-    logger.error(msg)
     res.status(500)
     res.send({ messages: [msg] })
 }
