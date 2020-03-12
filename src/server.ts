@@ -1,7 +1,8 @@
-import express from 'express'
+import express, {Errback, NextFunction, Request as ExpressRequest, Response as ExpressResponse} from 'express'
 import * as bodyParser from 'body-parser'
 import * as http from 'http'
 import * as swaggerUI from 'swagger-ui-express'
+import fs from 'fs'
 import cors from 'cors'
 import requestLogger from './middlewares/requestLogger'
 import 'reflect-metadata'
@@ -23,7 +24,10 @@ import path from 'path'
     app.use(requestLogger)
     RegisterRoutes(app)
     app.use(exceptionHandler)
-    app.use('/api/v1/static', express.static(path.join(__dirname, '../static')))
+    app.use('/api/v1/static', express.static(path.join(__dirname, '../static'), {fallthrough: false}))
+    app.use((err: Errback, req: ExpressRequest, res: ExpressResponse, next: NextFunction)=> {
+        fs.createReadStream(`static/img/default.png`).pipe(res)
+    })
     app.use('/api/v1/swagger', swaggerUI.serve, swaggerUI.setup(require('../static/swagger.json')))
 
     await connectToMongo(config.databaseUrl)
