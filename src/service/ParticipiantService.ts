@@ -1,13 +1,15 @@
-import mongoose, {Document, Model, model, Schema} from 'mongoose'
-import {FormSchemaModel} from 'models/FormSchema'
+import mongoose, { Document, Model, model, Schema } from 'mongoose'
+import { FormSchemaModel } from 'models/FormSchema'
 import FormSchemaService from 'service/FormSchemaService'
 import Exception from 'common/Exception'
 import Response from 'common/Response'
-import {ParticipantResponse, Participiant} from 'models/Participiant'
-import {Query} from 'models/Query'
-import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
-import {EventModel} from 'models/Event'
-import {TokenPayload} from 'google-auth-library'
+import { ParticipantResponse, Participiant } from 'models/Participiant'
+import { Query } from 'models/Query'
+import clog, { CHANGE_TYPE } from 'service/ChangesLogerService'
+import { EventModel } from 'models/Event'
+import { TokenPayload } from 'google-auth-library'
+import Excel from 'exceljs'
+import { byIdQuery } from 'common/utils'
 
 export enum ACCESS_TYPE {
     PRIVATE = 'private',
@@ -43,9 +45,9 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     const [list, total] = [await listPromise, await totalPromise]
     const pages = list.length ? Math.trunc(total / count) || 1 : 0
     // eslint-disable-next-line @typescript-eslint/camelcase
-    const meta = {total, pages, current_page: page}
+    const meta = { total, pages, current_page: page }
 
-    return new Response({list, meta}) //TODO: ujednolicić meta response
+    return new Response({ list, meta }) //TODO: ujednolicić meta response
 }
 
 async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
@@ -69,7 +71,7 @@ async function edit(formSlug: string, query: Record<string, string>, data: Recor
             const ids = allMatching.map<string>(p => p._id)
             const result = await formModel.updateMany(query, data)
             if (result?.nModified <= 0) throw Exception.fromMessage(`No Participants were found by given query ${query}`)
-            const updatedResult = await formModel.find({_id: {$in: ids}})
+            const updatedResult = await formModel.find({ _id: { $in: ids } })
             return new Response(updatedResult)
         }
     )
@@ -86,7 +88,7 @@ async function editOne(formId: string, participantId: string, data: Record<strin
         CHANGE_TYPE.EDIT,
         'Zmiana uczestnika',
         async () => {
-            const result = await formModel.findOneAndUpdate({_id: participantId}, data, {new: true})
+            const result = await formModel.findOneAndUpdate({ _id: participantId }, data, { new: true })
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -103,10 +105,35 @@ async function remove(formId: string, participantId: string, user: TokenPayload)
         CHANGE_TYPE.REMOVE,
         'Usunięcie uczestnika',
         async () => {
-            const result = await formModel.findOneAndDelete({_id: participantId})
+            const result = await formModel.findOneAndDelete({ _id: participantId })
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
+}
+
+async function exportExcel(slug: string, user: TokenPayload): Promise<Response<Participiant>> {
+    const form = await FormSchemaModel.findOne(byIdQuery(slug)).lean()
+    const responseModel = await _getModel(slug, ACCESS_TYPE.PRIVATE)
+    const allAnswers = await responseModel.find({})
+    const workbook = new Excel.Workbook()
+    const worksheet = workbook.addWorksheet(form.name)
+    const headers = []
+    const structure = form.structure;
+    for(const fieldNum in structure) {
+      const name = structure[fieldNum].name ? structure[fieldNum].name : structure[fieldNum][0].name 
+      headers.push({ 
+        header: name, 
+        key: fieldNum, 
+        width: name.length + 10,
+      })
+    }
+    worksheet.columns = headers    
+    for(const answer of allAnswers) {
+      worksheet.addRow(answer)
+    }
+    return workbook.xlsx.writeFile(`./static/forms/${slug}.xlsx`)
+      .then(() => new Response({ data: 'Excel worksheet has been saved.' }))
+      .catch(() => new Response({ data: 'Error while saving worksheet.' }))
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
@@ -122,7 +149,7 @@ async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<Par
         return mongoose.model(schemaName)
     }
 
-    const schema = await FormSchemaModel.findOne({slug: formSlug})
+    const schema = await FormSchemaModel.findOne({ slug: formSlug })
 
     if (type === ACCESS_TYPE.PUBLIC) {
         schema.structure = await FormSchemaService.parseToPublic(schema.structure)
@@ -163,8 +190,8 @@ function _prepareFilters(query: Query): { [p: string]: { $in: string[] } | { $re
     return Object.keys(query.filters || {}).reduce((obj, key) => ({
         ...obj,
         [key]: query.filters[key].length > 1
-            ? {$in: query.filters[key]}
-            : {$regex: `^${query.filters[key][0]}`, $options: 'i'}
+            ? { $in: query.filters[key] }
+            : { $regex: `^${query.filters[key][0]}`, $options: 'i' }
     }), {})
 }
 
@@ -172,7 +199,7 @@ async function _getEventIdFromFormId(formId: string): Promise<string> {
     const result = await EventModel.findOne({
         'forms': formId
     })
-    if(!result) throw Exception.fromMessage(`Nie ma wydarzenia powiązanego z podanym formularzem: ${formId}`)
+    if (!result) throw Exception.fromMessage(`Nie ma wydarzenia powiązanego z podanym formularzem: ${formId}`)
     return result._id
 }
 
@@ -181,5 +208,6 @@ export default {
     remove,
     edit,
     find,
-    editOne
+    editOne,
+    exportExcel
 }

@@ -1,13 +1,13 @@
-import {Body, Controller, Delete, Get, Patch, Post, Request, Route, Security, Tags} from 'tsoa'
+import { Body, Controller, Delete, Get, Patch, Post, Request, Route, Security, Tags } from 'tsoa'
 import Response from "common/Response";
 import qs from 'qs'
-import {Request as ExpressRequest} from 'express'
-import {ParticipantResponse, Participiant} from "models/Participiant";
-import ParticipiantService, {ACCESS_TYPE} from "service/ParticipiantService";
-import {AuthRequest} from 'common/AuthRequest'
+import { Request as ExpressRequest } from 'express'
+import { ParticipantResponse, Participiant } from "models/Participiant";
+import ParticipiantService, { ACCESS_TYPE } from "service/ParticipiantService";
+import { AuthRequest } from 'common/AuthRequest'
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
-type Record<K,V> = {[p: K]: V}
+type Record<K, V> = { [p: K]: V }
 
 @Route()
 @Tags('Participants')
@@ -72,7 +72,7 @@ export class ParticipantApi extends Controller {
     public async find(
         eventId: string,
         id: string,
-        @Request() {query}: ExpressRequest
+        @Request() { query }: ExpressRequest
     ): Promise<Response<ParticipantResponse>> {
         return await ParticipiantService.find(id, qs.parse(query))
     }
@@ -94,4 +94,18 @@ export class ParticipantApi extends Controller {
         return await ParticipiantService.remove(id, participantId, request.user)
     }
 
+    /**
+    * Export participant
+    * @param eventId event id
+    * @param id form id
+    */
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Post('/events/{eventId}/forms/{id}/export')
+    public async export(
+        eventId: string,
+        id: string,
+        @Request() request: AuthRequest
+    ): Promise<Response<Participiant>> {
+        return await ParticipiantService.exportExcel(id, request.user)
+    }
 }

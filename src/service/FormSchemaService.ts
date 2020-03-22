@@ -108,5 +108,5 @@ export default {
     create,
     getPrivate,
     getPublic,
-    parseToPublic
+    parseToPublic,
 }
