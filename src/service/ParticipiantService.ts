@@ -1,5 +1,5 @@
 import mongoose, {Document, Model, model, Schema} from 'mongoose'
-import {FormSchemaModel} from 'models/FormSchema'
+import {FormSchemaDoc, FormSchemaModel} from 'models/FormSchema'
 import FormSchemaService from 'service/FormSchemaService'
 import Exception from 'common/Exception'
 import Response from 'common/Response'
@@ -14,10 +14,12 @@ export enum ACCESS_TYPE {
     PRIVATE = 'private',
     PUBLIC = 'public'
 }
-
+const MONGO_UNIQUE_ERROR = 11000
 const RANGES_ACCESS: ACCESS_TYPE[] = [ACCESS_TYPE.PUBLIC, ACCESS_TYPE.PRIVATE]
 
 type ParticipantDoc = Document
+
+const SCHEMA_CACHE: Record<string, FormSchemaDoc> = {}
 
 async function find(formSlug, query: Query): Promise<Response<ParticipantResponse>> {
     if (!await _checkCollectionExists(formSlug)) {
@@ -51,8 +53,28 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
 
 async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
     const formModel = await _getModel(formSlug, type)
-    const result = await formModel.create(data)
-    return new Response(result)
+    try {
+        const result = await formModel.create(data)
+        return new Response(result)
+    } catch (e) {
+        await _parseCreateErrors(e, formSlug)
+    }
+}
+
+
+
+async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
+    if (e?.name === 'MongoError' && e?.code === MONGO_UNIQUE_ERROR && e?.keyPattern) {
+        const [key, value] = Object.entries(e?.keyPattern)[0]
+        const schema = await _getSchema(formSlug)
+        if (!schema) throw e
+        const field = schema.structure[key]
+        if (!field) throw e
+        throw Exception.fromMessage(
+            `Pole: ${field.name} musi mieć unikalną wartość. Mamy już uczestnika w systemie którego ${field.name} jest ${value}`,
+            422
+        )
+    } else throw e
 }
 
 async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
@@ -123,7 +145,7 @@ async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<Par
         return mongoose.model(schemaName)
     }
 
-    const schema = await FormSchemaModel.findOne({slug: formSlug})
+    const schema = await _getSchema(formSlug)
 
     if (type === ACCESS_TYPE.PUBLIC) {
         schema.structure = await FormSchemaService.parseToPublic(schema.structure)
@@ -135,6 +157,13 @@ async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<Par
     })
 
     return model(schemaName, formSchema)
+}
+
+async function _getSchema(formSlug: string): Promise<FormSchemaDoc> {
+    if(SCHEMA_CACHE[formSlug]) return Promise.resolve(SCHEMA_CACHE[formSlug])
+    const schema = await FormSchemaModel.findOne({slug: formSlug})
+    SCHEMA_CACHE[formSlug] = schema
+    return schema
 }
 
 
