@@ -146,7 +146,6 @@ async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<Par
     }
 
     const schema = await _getSchema(formSlug)
-    console.log(schema)
 
     if (type === ACCESS_TYPE.PUBLIC) {
         schema.structure = await FormSchemaService.parseToPublic(schema.structure)

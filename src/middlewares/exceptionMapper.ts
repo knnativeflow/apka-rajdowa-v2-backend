@@ -14,8 +14,8 @@ export default function (
     next: NextFunction
 ): void {
     if (_isException(err)) _parseException(err, res)
-    else if(isValidationError(err)) _parseValidationError(err, res)
-    else if (isNamedError(err)) _parseNamedError(err, res)
+    else if(_isValidationError(err)) _parseValidationError(err, res)
+    else if (_isNamedError(err)) _parseNamedError(err, res)
     else _parseUnknownError(err, res)
 }
 
@@ -52,11 +52,11 @@ function _isException(toBeDetermined: any): toBeDetermined is Exception {
     return (toBeDetermined as Exception).httpCode && (toBeDetermined as Exception).messages !== undefined
 }
 
-function isValidationError(err: any): err is ValidatorError {
+function _isValidationError(err: any): err is ValidatorError {
     return err.name === 'ValidationError'
 }
 
-function isNamedError(err: any): err is NamedError {
+function _isNamedError(err: any): err is NamedError {
     return err.name && err.message
 }
 
