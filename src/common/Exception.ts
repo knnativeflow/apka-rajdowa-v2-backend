@@ -21,5 +21,6 @@ export default class Exception {
 }
 
 export function isException(obj: Exception | unknown): obj is Exception {
-    return obj.hasOwnProperty('messages') && obj.hasOwnProperty('httpCode')
+    return Object.prototype.hasOwnProperty.call(obj, "messages") &&
+        Object.prototype.hasOwnProperty.call(obj,'httpCode')
 }
