@@ -77,7 +77,7 @@ async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
     } else throw e
 }
 
-async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
+async function editMany(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
     const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
     const eventId = await getEventIdFromFormId(formSlug)
     return clog.methodWithMultipleChangelog(
@@ -130,6 +130,25 @@ async function remove(formId: string, participantId: string, user: TokenPayload)
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
+}
+
+async function removeMany(formSlug: string, query: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
+    const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
+    const eventId = await getEventIdFromFormId(formSlug)
+    return clog.methodWithMultipleChangelog(
+        formModel,
+        eventId,
+        user,
+        query,
+        CHANGE_TYPE.REMOVE,
+        'Usunięcie wielu uczestników',
+        async () => {
+            if(Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby usunąć wszystkich uczestników musisz podać jawnie zapytanie')
+            const result = await formModel.deleteMany(query)
+            if (result?.deletedCount <= 0) throw Exception.fromMessage(`Nie znaleziono żadnego uczestnika spełniającego to zapytanie ${JSON.stringify(query)}`)
+            return new Response([])
+        }
+    )
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
@@ -201,7 +220,8 @@ function _prepareFilters(query: Query): { [p: string]: { $in: string[] } | { $re
 export default {
     add,
     remove,
-    edit,
+    removeMany,
+    editMany,
     find,
     editOne
 }

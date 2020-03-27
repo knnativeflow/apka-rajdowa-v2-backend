@@ -55,8 +55,40 @@ import dotenv from 'dotenv'
                                 }
                             }
                         ]
+                    },
+                    'delete': {
+                        'parameters': [
+                            {
+                                'in': 'query',
+                                'name': 'filter',
+                                'schema': {
+                                    'type': 'object'
+                                },
+                                'style': 'form',
+                                'explode': true
+                            },
+                            {
+                                'description': 'event id',
+                                'in': 'path',
+                                'name': 'eventId',
+                                'required': true,
+                                'schema': {
+                                    'type': 'string'
+                                }
+                            },
+                            {
+                                'description': 'form id',
+                                'in': 'path',
+                                'name': 'id',
+                                'required': true,
+                                'schema': {
+                                    'type': 'string'
+                                }
+                            }
+                        ]
                     }
                 },
+
 
                 '/events/{eventId}/forms/{id}': {
                     'get': {

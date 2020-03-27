@@ -12,7 +12,7 @@ export interface Config {
 }
 
 export const config: Config = {
-    port: +_loadEnvVariable('PORT', '5000'),
+    port: +_loadEnvVariable('PORT', '9696'),
     debugLogging: _loadEnvVariable('NODE_ENV', 'production') == 'development',
     databaseUrl: _loadEnvVariable('DATABASE_URL'),
     googleClientId: _loadEnvVariable('GOOGLE_CLIENT_ID'),
