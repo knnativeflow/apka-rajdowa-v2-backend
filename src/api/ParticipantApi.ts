@@ -40,7 +40,7 @@ export class ParticipantApi extends Controller {
         @Body() payload: Participiant,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant[]>> {
-        return await ParticipiantService.editMany(id, qs.parse(request.query, { comma: true }), payload, request.user)
+        return await ParticipiantService.editMany(id, request.query, payload, request.user)
     }
 
     /**
@@ -74,7 +74,7 @@ export class ParticipantApi extends Controller {
         id: string,
         @Request() {query}: ExpressRequest
     ): Promise<Response<ParticipantResponse>> {
-        return await ParticipiantService.find(id, qs.parse(query, { comma: true }))
+        return await ParticipiantService.find(id, query)
     }
 
     /**
@@ -106,7 +106,7 @@ export class ParticipantApi extends Controller {
         id: string,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
-        return await ParticipiantService.removeMany(id, qs.parse(request.query, { comma: true }), request.user)
+        return await ParticipiantService.removeMany(id, request.query, request.user)
     }
 
 }

@@ -26,19 +26,21 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
         throw Exception.fromMessage(`Not found collection form_${formSlug}`, 404)
     }
 
-    const page = parseInt(query.page, 10) || parseInt(process.env.DEFAULT_PAGE, 10) || 1
-    const count = parseInt(query.count, 10) || parseInt(process.env.DEFAULT_PER_PAGE, 10) || 50
+    const page = parseInt(query.page, 10) || 1
+    const count = parseInt(query.count, 10) || 50
 
     const filters = _prepareFilters(query)
     const fields = _prepareFields(query)
+    console.log(filters)
+    console.log(fields)
     const sort = _prepareSortConditions(query)
 
         const listPromise = mongoose.connection.collection(`form_${formSlug}`)
             .find(filters, fields)
-        .skip((page - 1) * count)
-        .limit(count)
-        .sort(sort)
-        .toArray()
+            .skip((page - 1) * count)
+            .limit(count)
+            .sort(sort)
+            .toArray()
 
     const totalPromise = mongoose.connection.collection(`form_${formSlug}`)
         .countDocuments(filters)
@@ -212,8 +214,8 @@ function _prepareFilters(query: Query): { [p: string]: { $in: string[] } | { $re
     return Object.keys(query.filters || {}).reduce((obj, key) => ({
         ...obj,
         [key]: query.filters[key].length > 1
-            ? {$in: query.filters[key]}
-            : {$regex: `^${query.filters[key][0]}`, $options: 'i'}
+            ? {$all: query.filters[key]}
+            : query.filters[key][0]
     }), {})
 }
 

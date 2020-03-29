@@ -12,18 +12,22 @@ import { config } from 'config/config'
 import { RegisterRoutes } from 'api/_auto/routes'
 import exceptionHandler from './middlewares/exceptionMapper'
 import path from 'path'
+import qs from 'qs'
 
 (async function setup() {
 
     const app = express()
     const server = http.createServer(app)
 
+    app.set('query parser', (textQuery: string) => qs.parse(textQuery, { comma: true }))
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({extended: true}))
     app.use(cors())
+
     app.use(requestLogger)
     RegisterRoutes(app)
     app.use(exceptionHandler)
+
     app.use('/api/v1/static', express.static(path.join(__dirname, '../static'), {fallthrough: false}))
     app.use((err: Errback, req: ExpressRequest, res: ExpressResponse, next: NextFunction)=> {
         fs.createReadStream(`static/img/default.png`).pipe(res)
