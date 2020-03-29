@@ -90,6 +90,7 @@ async function editMany(formSlug: string, query: Record<string, string>, data: R
         CHANGE_TYPE.EDIT,
         'Zmiana wielu uczestników',
         async () => {
+            if(Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby edytować wszystkich uczestników musisz podać jawnie zapytanie')
             const allMatching = await formModel.find(query)
             const ids = allMatching.map<string>(p => p._id)
             const result = await formModel.updateMany(query, data)
