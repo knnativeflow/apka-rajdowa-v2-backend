@@ -12,10 +12,16 @@ export interface Config {
 }
 
 export const config: Config = {
-    port: +process.env.PORT || 5000,
-    debugLogging: process.env.NODE_ENV == 'development',
-    databaseUrl: process.env.DATABASE_URL,
-    googleClientId: process.env.GOOGLE_CLIENT_ID,
-    secretKey: process.env.SECRET_KEY || 'missing-key',
-    changelogExpireTime: +process.env.CHANGELOG_EXPIRE_TIME || 3600
+    port: +_loadEnvVariable('PORT', '9696'),
+    debugLogging: _loadEnvVariable('NODE_ENV', 'production') == 'development',
+    databaseUrl: _loadEnvVariable('DATABASE_URL'),
+    googleClientId: _loadEnvVariable('GOOGLE_CLIENT_ID'),
+    secretKey: _loadEnvVariable('SECRET_KEY'),
+    changelogExpireTime: +_loadEnvVariable('CHANGELOG_EXPIRE_TIME', '3600')
+}
+
+function _loadEnvVariable(name: string, defaultValue?: string): string {
+    const value = process.env[name]
+    if(!value && !defaultValue) throw `Error: Missing configuration property: ${name}`
+    return value ?? defaultValue
 }

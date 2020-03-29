@@ -40,7 +40,7 @@ export class ParticipantApi extends Controller {
         @Body() payload: Participiant,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant[]>> {
-        return await ParticipiantService.edit(id, qs.parse(request.query), payload, request.user)
+        return await ParticipiantService.editMany(id, request.query, payload, request.user)
     }
 
     /**
@@ -74,7 +74,7 @@ export class ParticipantApi extends Controller {
         id: string,
         @Request() {query}: ExpressRequest
     ): Promise<Response<ParticipantResponse>> {
-        return await ParticipiantService.find(id, qs.parse(query))
+        return await ParticipiantService.find(id, query)
     }
 
     /**
@@ -92,6 +92,21 @@ export class ParticipantApi extends Controller {
         @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
         return await ParticipiantService.remove(id, participantId, request.user)
+    }
+
+    /**
+     * Remove all participants matching the query
+     * @param eventId event id
+     * @param id form id
+     */
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Delete('/events/{eventId}/forms/{id}/participants')
+    public async removeMany(
+        eventId: string,
+        id: string,
+        @Request() request: AuthRequest
+    ): Promise<Response<Participiant>> {
+        return await ParticipiantService.removeMany(id, request.query, request.user)
     }
 
 }

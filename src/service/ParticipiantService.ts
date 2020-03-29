@@ -26,8 +26,8 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
         throw Exception.fromMessage(`Not found collection form_${formSlug}`, 404)
     }
 
-    const page = parseInt(query.page, 10) || parseInt(process.env.DEFAULT_PAGE, 10) || 1
-    const count = parseInt(query.count, 10) || parseInt(process.env.DEFAULT_PER_PAGE, 10) || 50
+    const page = parseInt(query.page, 10) || 1
+    const count = parseInt(query.count, 10) || 50
 
     const filters = _prepareFilters(query)
     const fields = _prepareFields(query)
@@ -35,10 +35,10 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
 
         const listPromise = mongoose.connection.collection(`form_${formSlug}`)
             .find(filters, fields)
-        .skip((page - 1) * count)
-        .limit(count)
-        .sort(sort)
-        .toArray()
+            .skip((page - 1) * count)
+            .limit(count)
+            .sort(sort)
+            .toArray()
 
     const totalPromise = mongoose.connection.collection(`form_${formSlug}`)
         .countDocuments(filters)
@@ -77,7 +77,7 @@ async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
     } else throw e
 }
 
-async function edit(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
+async function editMany(formSlug: string, query: Record<string, string>, data: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
     const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
     const eventId = await getEventIdFromFormId(formSlug)
     return clog.methodWithMultipleChangelog(
@@ -88,6 +88,7 @@ async function edit(formSlug: string, query: Record<string, string>, data: Recor
         CHANGE_TYPE.EDIT,
         'Zmiana wielu uczestników',
         async () => {
+            if(Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby edytować wszystkich uczestników musisz podać jawnie zapytanie')
             const allMatching = await formModel.find(query)
             const ids = allMatching.map<string>(p => p._id)
             const result = await formModel.updateMany(query, data)
@@ -130,6 +131,25 @@ async function remove(formId: string, participantId: string, user: TokenPayload)
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
+}
+
+async function removeMany(formSlug: string, query: Record<string, string>, user: TokenPayload): Promise<Response<ParticipantDoc[]>> {
+    const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
+    const eventId = await getEventIdFromFormId(formSlug)
+    return clog.methodWithMultipleChangelog(
+        formModel,
+        eventId,
+        user,
+        query,
+        CHANGE_TYPE.REMOVE,
+        'Usunięcie wielu uczestników',
+        async () => {
+            if(Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby usunąć wszystkich uczestników musisz podać jawnie zapytanie')
+            const result = await formModel.deleteMany(query)
+            if (result?.deletedCount <= 0) throw Exception.fromMessage(`Nie znaleziono żadnego uczestnika spełniającego to zapytanie ${JSON.stringify(query)}`)
+            return new Response([])
+        }
+    )
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
@@ -193,15 +213,16 @@ function _prepareFilters(query: Query): { [p: string]: { $in: string[] } | { $re
     return Object.keys(query.filters || {}).reduce((obj, key) => ({
         ...obj,
         [key]: query.filters[key].length > 1
-            ? {$in: query.filters[key]}
-            : {$regex: `^${query.filters[key][0]}`, $options: 'i'}
+            ? {$all: query.filters[key]}
+            : query.filters[key][0]
     }), {})
 }
 
 export default {
     add,
     remove,
-    edit,
+    removeMany,
+    editMany,
     find,
     editOne
 }

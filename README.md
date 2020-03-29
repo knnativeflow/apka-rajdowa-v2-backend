@@ -38,9 +38,9 @@ by `NativeFlow`
     //do przemyslenia czy klucze to wartosci ktore trafiaja do bazy - problem z polskimi znakami, itp
 
     //pole wielokrotnego wyboru
-    field4: [{ type: 'string', enum: ['Tak', 'Nie', 'Nie wiem'] }],
+    field4: { type: ['string'], enum: ['Tak', 'Nie', 'Nie wiem'] },
     //problem z typem field4 - nie jest jak reszta obiektem tylko array'em
-    field5: { type: 'boolean', htmlType: 'checkbox' }, //TODO
+    field5: { type: 'boolean', htmlType: 'checkbox' }, //TODO????
 
     //select
     field5: { type: 'string', enum: ['Tak', 'Nie', 'Nie wiem'], htmlType: 'select' },
