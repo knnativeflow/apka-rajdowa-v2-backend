@@ -31,8 +31,6 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
 
     const filters = _prepareFilters(query)
     const fields = _prepareFields(query)
-    console.log(filters)
-    console.log(fields)
     const sort = _prepareSortConditions(query)
 
         const listPromise = mongoose.connection.collection(`form_${formSlug}`)
