@@ -6,10 +6,10 @@ import fs from 'fs'
 import cors from 'cors'
 import requestLogger from './middlewares/requestLogger'
 import 'reflect-metadata'
-import { connectToMongo } from 'config/config.mongoose'
-import { logger } from 'common/logger'
-import { config } from 'config/config'
-import { RegisterRoutes } from 'api/_auto/routes'
+import { connectToMongo } from './config/config.mongoose'
+import { logger } from './common/logger'
+import { config } from './config/config'
+import { RegisterRoutes } from './api/_auto/routes'
 import exceptionHandler from './middlewares/exceptionMapper'
 import path from 'path'
 import qs from 'qs'
@@ -21,7 +21,7 @@ import qs from 'qs'
 
     app.set('query parser', (textQuery: string) => qs.parse(textQuery, { comma: true }))
     app.use(bodyParser.json())
-    app.use(bodyParser.urlencoded({extended: true}))
+    app.use(bodyParser.urlencoded({ extended: true }))
     app.use(cors())
 
     app.use(requestLogger)
@@ -33,7 +33,6 @@ import qs from 'qs'
         fs.createReadStream(`static/img/default.png`).pipe(res)
     })
     app.use('/api/v1/swagger', swaggerUI.serve, swaggerUI.setup(require('../static/swagger.json')))
-
     await connectToMongo(config.databaseUrl)
     server.listen(config.port)
     logger.info(`Server running on port : ${config.port}`)

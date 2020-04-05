@@ -9,6 +9,8 @@ import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import {EventModel} from 'models/Event'
 import {TokenPayload} from 'google-auth-library'
 import {getEventIdFromFormId} from 'common/utils'
+import Excel from 'exceljs'
+import { byIdQuery } from 'common/utils'
 
 export enum ACCESS_TYPE {
     PRIVATE = 'private',
@@ -46,9 +48,9 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     const [list, total] = [await listPromise, await totalPromise]
     const pages = list.length ? Math.trunc(total / count) || 1 : 0
     // eslint-disable-next-line @typescript-eslint/camelcase
-    const meta = {total, pages, current_page: page}
+    const meta = { total, pages, current_page: page }
 
-    return new Response({list, meta}) //TODO: ujednolicić meta response
+    return new Response({ list, meta }) //TODO: ujednolicić meta response
 }
 
 async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
@@ -93,7 +95,7 @@ async function editMany(formSlug: string, query: Record<string, string>, data: R
             const ids = allMatching.map<string>(p => p._id)
             const result = await formModel.updateMany(query, data)
             if (result?.nModified <= 0) throw Exception.fromMessage(`No Participants were found by given query ${query}`)
-            const updatedResult = await formModel.find({_id: {$in: ids}})
+            const updatedResult = await formModel.find({ _id: { $in: ids } })
             return new Response(updatedResult)
         }
     )
@@ -110,7 +112,7 @@ async function editOne(formId: string, participantId: string, data: Record<strin
         CHANGE_TYPE.EDIT,
         'Zmiana uczestnika',
         async () => {
-            const result = await formModel.findOneAndUpdate({_id: participantId}, data, {new: true})
+            const result = await formModel.findOneAndUpdate({ _id: participantId }, data, { new: true })
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -127,7 +129,7 @@ async function remove(formId: string, participantId: string, user: TokenPayload)
         CHANGE_TYPE.REMOVE,
         'Usunięcie uczestnika',
         async () => {
-            const result = await formModel.findOneAndDelete({_id: participantId})
+            const result = await formModel.findOneAndDelete({ _id: participantId })
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -150,6 +152,39 @@ async function removeMany(formSlug: string, query: Record<string, string>, user:
             return new Response([])
         }
     )
+}
+
+async function exportExcel(slug: string, user: TokenPayload): Promise<Response<Participiant>> {
+    const form = await FormSchemaModel.findOne(byIdQuery(slug)).lean()
+    const responseModel = await _getModel(slug, ACCESS_TYPE.PRIVATE)
+    const allAnswers = await responseModel.find({})
+    const workbook = new Excel.Workbook()
+    const worksheet = workbook.addWorksheet(form.name)
+    const headers = []
+    const structure = form.structure;
+    for(const fieldNum in structure) {
+      const name = structure[fieldNum].name ? structure[fieldNum].name : structure[fieldNum][0].name 
+      headers.push({ 
+        header: name, 
+        key: fieldNum, 
+        width: name.length * 1.5,
+      })
+    }
+    worksheet.columns = headers    
+    for(const answer of allAnswers) {
+      const correctedAnswer = {};
+      for(const field in answer.toJSON()) {
+        if(Array.isArray(answer[field])) {
+          correctedAnswer[field] = answer[field].toString()
+        } else {
+          correctedAnswer[field] = answer[field];
+        }
+      }
+      worksheet.addRow(correctedAnswer)
+    }
+    return workbook.xlsx.writeFile(`./static/forms/${slug}.xlsx`)
+      .then(() => new Response({ data: 'Excel worksheet has been saved.' }))
+      .catch(() => new Response({ data: 'Error while saving worksheet.' }))
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
@@ -224,5 +259,6 @@ export default {
     removeMany,
     editMany,
     find,
-    editOne
+    editOne,
+    exportExcel
 }

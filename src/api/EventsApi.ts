@@ -1,9 +1,9 @@
-import {Body, Controller, Delete, Get, Post, Put, Request, Route, Security, Tags} from 'tsoa'
-import {EventDoc, EventUpdateRequest} from 'models/Event'
+import { Body, Controller, Delete, Get, Post, Put, Request, Route, Security, Tags } from 'tsoa'
+import { EventDoc, EventUpdateRequest } from 'models/Event'
 import Response from 'common/Response'
 import EventService from 'service/EventService'
 import multer from 'multer'
-import {AuthRequest, FileAuthRequest} from 'common/AuthRequest'
+import { AuthRequest, FileAuthRequest } from 'common/AuthRequest'
 
 interface Document {
     _id: string;
@@ -73,9 +73,9 @@ export class EventsApi extends Controller {
 }
 
 function _handleFile(request: AuthRequest): Promise<any> {
-    const multerSingle = multer({dest: 'static/img'}).single('logo')
+    const multerSingle = multer({ dest: 'static/img' }).single('logo')
     return new Promise((resolve, reject) => {
-        multerSingle(request, undefined,  error => {
+        multerSingle(request, undefined, error => {
             if (error) {
                 reject(error)
             }

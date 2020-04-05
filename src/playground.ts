@@ -1,9 +1,9 @@
-import { connectToMongo } from 'config/config.mongoose'
-import { config } from 'config/config'
+import { connectToMongo } from './config/config.mongoose'
+import { config } from './config/config'
 
 connectToMongo(config.databaseUrl)
-.then(async () => {
+    .then(async () => {
 
-    // DEFAULT PLAYGROUND
-    // HERE YOU CAN PLAY WITH SERVICES
-})
+        // DEFAULT PLAYGROUND
+        // HERE YOU CAN PLAY WITH SERVICES
+    })
