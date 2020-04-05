@@ -124,12 +124,20 @@ async function exportExcel(slug: string, user: TokenPayload): Promise<Response<P
       headers.push({ 
         header: name, 
         key: fieldNum, 
-        width: name.length + 10,
+        width: name.length * 1.5,
       })
     }
     worksheet.columns = headers    
     for(const answer of allAnswers) {
-      worksheet.addRow(answer)
+      const correctedAnswer = {};
+      for(const field in answer.toJSON()) {
+        if(Array.isArray(answer[field])) {
+          correctedAnswer[field] = answer[field].toString()
+        } else {
+          correctedAnswer[field] = answer[field];
+        }
+      }
+      worksheet.addRow(correctedAnswer)
     }
     return workbook.xlsx.writeFile(`./static/forms/${slug}.xlsx`)
       .then(() => new Response({ data: 'Excel worksheet has been saved.' }))
