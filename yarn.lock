@@ -1256,10 +1256,10 @@ event-target-shim@^5.0.0:
   resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
   integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
 
-exceljs@^3.8.2:
-  version "3.8.2"
-  resolved "https://registry.yarnpkg.com/exceljs/-/exceljs-3.8.2.tgz#7ef0521bb2edd8877196ff55b497cfa3d6fdbeb3"
-  integrity sha512-pch8RjBrPdqlI35uDOtJ/HlLiAYZQ7hR2GPhHRtcQnkCCakjCOwUYTYyXg8z2abMZiITZBxyrK1dDU9k6HHTPg==
+exceljs@3.8.1:
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/exceljs/-/exceljs-3.8.1.tgz#162d7344bf6399029480f670a3ab524b87d511b3"
+  integrity sha512-Kz3QUh/dmYPCmPoJeZRqc686SFOSDiH7uPFHC28FwnlLm/ML1F5R59NdWLMsqYjYx7KqFU4KIx3Sw2m2U9c4qw==
   dependencies:
     archiver "^3.0.0"
     dayjs "^1.8.15"
