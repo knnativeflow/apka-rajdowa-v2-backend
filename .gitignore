@@ -21,7 +21,6 @@ src/api/_auto/routes.ts
 static/*
 !static/img/default.png
 
-
 # Editors
 .idea
 *.iml

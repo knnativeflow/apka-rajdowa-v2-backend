@@ -1,14 +1,16 @@
 import mongoose, {Document, Model, model, Schema} from 'mongoose'
-import {FormSchemaDoc, FormSchemaModel} from 'models/FormSchema'
+import {FormSchemaDoc, FormSchemaModel, Structure} from 'models/FormSchema'
 import FormSchemaService from 'service/FormSchemaService'
 import Exception from 'common/Exception'
 import Response from 'common/Response'
 import {ParticipantResponse, Participiant} from 'models/Participiant'
 import {Query} from 'models/Query'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
-import {EventModel} from 'models/Event'
+
 import {TokenPayload} from 'google-auth-library'
 import {getEventIdFromFormId} from 'common/utils'
+import Excel, {Column, Workbook} from 'exceljs'
+import { byIdQuery } from 'common/utils'
 
 export enum ACCESS_TYPE {
     PRIVATE = 'private',
@@ -46,9 +48,9 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     const [list, total] = [await listPromise, await totalPromise]
     const pages = list.length ? Math.trunc(total / count) || 1 : 0
     // eslint-disable-next-line @typescript-eslint/camelcase
-    const meta = {total, pages, current_page: page}
+    const meta = { total, pages, current_page: page }
 
-    return new Response({list, meta}) //TODO: ujednolicić meta response
+    return new Response({ list, meta }) //TODO: ujednolicić meta response
 }
 
 async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
@@ -93,7 +95,7 @@ async function editMany(formSlug: string, query: Record<string, string>, data: R
             const ids = allMatching.map<string>(p => p._id)
             const result = await formModel.updateMany(query, data)
             if (result?.nModified <= 0) throw Exception.fromMessage(`No Participants were found by given query ${query}`)
-            const updatedResult = await formModel.find({_id: {$in: ids}})
+            const updatedResult = await formModel.find({ _id: { $in: ids } })
             return new Response(updatedResult)
         }
     )
@@ -110,7 +112,7 @@ async function editOne(formId: string, participantId: string, data: Record<strin
         CHANGE_TYPE.EDIT,
         'Zmiana uczestnika',
         async () => {
-            const result = await formModel.findOneAndUpdate({_id: participantId}, data, {new: true})
+            const result = await formModel.findOneAndUpdate({ _id: participantId }, data, { new: true })
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -127,7 +129,7 @@ async function remove(formId: string, participantId: string, user: TokenPayload)
         CHANGE_TYPE.REMOVE,
         'Usunięcie uczestnika',
         async () => {
-            const result = await formModel.findOneAndDelete({_id: participantId})
+            const result = await formModel.findOneAndDelete({ _id: participantId })
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -150,6 +152,23 @@ async function removeMany(formSlug: string, query: Record<string, string>, user:
             return new Response([])
         }
     )
+}
+
+async function exportExcel(slug: string): Promise<Workbook> {
+    const form: FormSchemaDoc = await FormSchemaModel.findOne(byIdQuery(slug))
+    const participants = await mongoose.connection.collection(`form_${slug}`).find({}).toArray()
+    const workbook = new Excel.Workbook()
+    const worksheet = workbook.addWorksheet(form.name)
+    worksheet.columns = _workbookColumns(form.structure)
+    worksheet.addRows(participants.map(_serializeParticipant))
+    return workbook
+}
+
+function _serializeParticipant(participant: any): any {
+    return Object.fromEntries(Object.entries(participant).map(([k,v]) => Array.isArray(v) ? [k,v.toString()] : [k,v]))
+}
+function _workbookColumns(structure: Structure): Partial<Column>[] {
+    return Object.entries(structure).map(([key, field], index) => ({header: field.name, key, width: field.name.length * 1.5}))
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
@@ -224,5 +243,6 @@ export default {
     removeMany,
     editMany,
     find,
-    editOne
+    editOne,
+    exportExcel
 }

@@ -1,13 +1,12 @@
-import {Body, Controller, Delete, Get, Patch, Post, Request, Route, Security, Tags} from 'tsoa'
+import { Body, Controller, Delete, Get, Patch, Post, Request, Route, Security, Tags } from 'tsoa'
 import Response from "common/Response";
-import qs from 'qs'
-import {Request as ExpressRequest} from 'express'
-import {ParticipantResponse, Participiant} from "models/Participiant";
-import ParticipiantService, {ACCESS_TYPE} from "service/ParticipiantService";
-import {AuthRequest} from 'common/AuthRequest'
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
+import { ParticipantResponse, Participiant } from "models/Participiant";
+import ParticipiantService, { ACCESS_TYPE } from "service/ParticipiantService";
+import { AuthRequest } from 'common/AuthRequest'
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
-type Record<K,V> = {[p: K]: V}
+type Record<K, V> = { [p: K]: V }
 
 @Route()
 @Tags('Participants')
@@ -72,7 +71,7 @@ export class ParticipantApi extends Controller {
     public async find(
         eventId: string,
         id: string,
-        @Request() {query}: ExpressRequest
+        @Request() { query }: ExpressRequest
     ): Promise<Response<ParticipantResponse>> {
         return await ParticipiantService.find(id, query)
     }
@@ -102,11 +101,29 @@ export class ParticipantApi extends Controller {
     @Security('GOOGLE_TOKEN', ['ADMIN'])
     @Delete('/events/{eventId}/forms/{id}/participants')
     public async removeMany(
-        eventId: string,
+      eventId: string,
         id: string,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
-        return await ParticipiantService.removeMany(id, request.query, request.user)
+      return await ParticipiantService.find(id, request.user)
     }
-
+    /**
+    * Export participant
+    * @param eventId event id
+    * @param id form id
+    */
+    @Security('GOOGLE_TOKEN', ['ADMIN'])
+    @Get('/events/{eventId}/forms/{id}/export')
+    public async export(
+        eventId: string,
+        id: string,
+        @Request() request: AuthRequest
+    ): Promise<void> {
+        const workbook = await ParticipiantService.exportExcel(id)
+        const res = request.res as ExpressResponse
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx")
+        await workbook.xlsx.write(res)
+        res.end()
+    }
 }
