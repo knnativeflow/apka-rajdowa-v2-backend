@@ -11,6 +11,7 @@ import {ROLE} from 'common/consts'
 import {TokenPayload} from 'google-auth-library'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import mongoose from 'mongoose'
+import {FormSchemaModel} from 'models/FormSchema'
 
 async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
@@ -44,13 +45,32 @@ async function remove(id: string): Promise<Response<EventDoc>> {
     const result = await EventModel.findOneAndDelete(query)
     if (!result) throw Exception.fromMessage(`Event with id ${id} doesn't exist`)
     await _removeEventLogo(result)
+    await _removeAssociatedCollections(result)
     return new Response(result)
+}
+
+async function _removeAssociatedCollections(result: EventDoc): Promise<void> {
+    try {
+        await FormSchemaModel.deleteMany({slug: result.forms})
+        await Promise.all(result.forms.map(slug => _dropCollection(`form_${slug}`)))
+        await _dropCollection(`changelog_${result.slug}`)
+    } catch {
+        logger.error('Error during event clean up')
+    }
+}
+
+function _dropCollection(name: string): Promise<any> {
+   return mongoose.connection.collection(name).drop()
 }
 
 async function _removeEventLogo(result: EventDoc): Promise<void> {
     const fileName = result.logo.split('/img/')[1]
-    await fs.promises.unlink(`static/img/${fileName}`)
-    logger.info(`Removing file : ${fileName}`)
+    try {
+        await fs.promises.unlink(`static/img/${fileName}`)
+        logger.info(`Removed file : ${fileName}`)
+    } catch (e) {
+        logger.error(`Failed during removing file: ${fileName}`)
+    }
 }
 
 async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
