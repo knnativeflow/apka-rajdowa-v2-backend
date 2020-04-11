@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Patch, Post, Request, Route, Security, Tags } from 'tsoa'
 import Response from "common/Response";
-import qs from 'qs'
-import { Request as ExpressRequest } from 'express'
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
 import { ParticipantResponse, Participiant } from "models/Participiant";
 import ParticipiantService, { ACCESS_TYPE } from "service/ParticipiantService";
 import { AuthRequest } from 'common/AuthRequest'
@@ -106,7 +105,7 @@ export class ParticipantApi extends Controller {
         id: string,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
-      return await ParticipiantService.exportExcel(id, request.user)
+      return await ParticipiantService.find(id, request.user)
     }
     /**
     * Export participant
@@ -114,12 +113,17 @@ export class ParticipantApi extends Controller {
     * @param id form id
     */
     @Security('GOOGLE_TOKEN', ['ADMIN'])
-    @Post('/events/{eventId}/forms/{id}/export')
+    @Get('/events/{eventId}/forms/{id}/export')
     public async export(
         eventId: string,
         id: string,
         @Request() request: AuthRequest
-    ): Promise<Response<Participiant>> {
-        return await ParticipiantService.exportExcel(id, request.user)
+    ): Promise<void> {
+        const workbook = await ParticipiantService.exportExcel(id)
+        const res = request.res as ExpressResponse
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx")
+        await workbook.xlsx.write(res)
+        res.end()
     }
 }

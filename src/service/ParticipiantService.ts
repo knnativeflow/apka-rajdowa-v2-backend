@@ -1,15 +1,15 @@
 import mongoose, {Document, Model, model, Schema} from 'mongoose'
-import {FormSchemaDoc, FormSchemaModel} from 'models/FormSchema'
+import {FormSchemaDoc, FormSchemaModel, Structure} from 'models/FormSchema'
 import FormSchemaService from 'service/FormSchemaService'
 import Exception from 'common/Exception'
 import Response from 'common/Response'
 import {ParticipantResponse, Participiant} from 'models/Participiant'
 import {Query} from 'models/Query'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
-import {EventModel} from 'models/Event'
+
 import {TokenPayload} from 'google-auth-library'
 import {getEventIdFromFormId} from 'common/utils'
-import Excel from 'exceljs'
+import Excel, {Column, Workbook} from 'exceljs'
 import { byIdQuery } from 'common/utils'
 
 export enum ACCESS_TYPE {
@@ -154,37 +154,21 @@ async function removeMany(formSlug: string, query: Record<string, string>, user:
     )
 }
 
-async function exportExcel(slug: string, user: TokenPayload): Promise<Response<Participiant>> {
-    const form = await FormSchemaModel.findOne(byIdQuery(slug)).lean()
-    const responseModel = await _getModel(slug, ACCESS_TYPE.PRIVATE)
-    const allAnswers = await responseModel.find({})
+async function exportExcel(slug: string): Promise<Workbook> {
+    const form: FormSchemaDoc = await FormSchemaModel.findOne(byIdQuery(slug))
+    const participants = await mongoose.connection.collection(`form_${slug}`).find({}).toArray()
     const workbook = new Excel.Workbook()
     const worksheet = workbook.addWorksheet(form.name)
-    const headers = []
-    const structure = form.structure;
-    for(const fieldNum in structure) {
-      const name = structure[fieldNum].name ? structure[fieldNum].name : structure[fieldNum][0].name 
-      headers.push({ 
-        header: name, 
-        key: fieldNum, 
-        width: name.length * 1.5,
-      })
-    }
-    worksheet.columns = headers    
-    for(const answer of allAnswers) {
-      const correctedAnswer = {};
-      for(const field in answer.toJSON()) {
-        if(Array.isArray(answer[field])) {
-          correctedAnswer[field] = answer[field].toString()
-        } else {
-          correctedAnswer[field] = answer[field];
-        }
-      }
-      worksheet.addRow(correctedAnswer)
-    }
-    return workbook.xlsx.writeFile(`./static/forms/${slug}.xlsx`)
-      .then(() => new Response({ data: 'Excel worksheet has been saved.' }))
-      .catch(() => new Response({ data: 'Error while saving worksheet.' }))
+    worksheet.columns = _workbookColumns(form.structure)
+    worksheet.addRows(participants.map(_serializeParticipant))
+    return workbook
+}
+
+function _serializeParticipant(participant: any): any {
+    return Object.fromEntries(Object.entries(participant).map(([k,v]) => Array.isArray(v) ? [k,v.toString()] : [k,v]))
+}
+function _workbookColumns(structure: Structure): Partial<Column>[] {
+    return Object.entries(structure).map(([key, field], index) => ({header: field.name, key, width: field.name.length * 1.5}))
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
