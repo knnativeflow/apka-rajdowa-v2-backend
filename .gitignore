@@ -20,7 +20,6 @@ bower_components
 src/api/_auto/routes.ts
 static/*
 !static/img/default.png
-!static/forms
 
 # Editors
 .idea
