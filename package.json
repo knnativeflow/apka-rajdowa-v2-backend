@@ -63,7 +63,7 @@
     "qs": "^6.9.3",
     "reflect-metadata": "^0.1.13",
     "swagger-ui-express": "^4.1.4",
-    "tsoa": "^2.5.13",
+    "tsoa": "2.5.14",
     "winston": "^3.2.1"
   }
 }
