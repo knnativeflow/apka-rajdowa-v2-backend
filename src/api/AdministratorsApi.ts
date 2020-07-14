@@ -15,9 +15,9 @@ export class AdministratorApi extends Controller {
      * @param adminId admin id
      */
     @Security('GOOGLE_TOKEN', ['OWNER'])
-    @Delete('/events/{id}/administrators/{adminId}')
-    public async remove(id: string, adminId: string, @Request() request: AuthRequest): Promise<Response<EventDoc>> {
-        return await AdministratorService.remove(id, adminId, request.user)
+    @Delete('/events/{eventId}/administrators/{adminId}')
+    public async remove(eventId: string, adminId: string, @Request() request: AuthRequest): Promise<Response<EventDoc>> {
+        return await AdministratorService.remove(eventId, adminId, request.user)
     }
 
     /**
@@ -26,14 +26,14 @@ export class AdministratorApi extends Controller {
      * @param adminId admin id
      */
     @Security('GOOGLE_TOKEN', ['OWNER'])
-    @Put('/events/{id}/administrators/{adminId}')
+    @Put('/events/{eventId}/administrators/{adminId}')
     public async changeRole(
-        id: string,
+        eventId: string,
         adminId: string,
         @Body() payload: AdministratorChangeRoleRequest,
         @Request() request: AuthRequest
     ): Promise<Response<EventDoc>> {
-        return await AdministratorService.changeRole(id, adminId, payload.role, request.user)
+        return await AdministratorService.changeRole(eventId, adminId, payload.role, request.user)
     }
 
     /**
@@ -41,13 +41,13 @@ export class AdministratorApi extends Controller {
      * @param id event id
      */
     @Security('GOOGLE_TOKEN', ['OWNER'])
-    @Post('/events/{id}/administrators')
+    @Post('/events/{eventId}/administrators')
     public async add(
-        id: string,
+        eventId: string,
         @Body() payload: AdministratorRequest,
         @Request() request: AuthRequest
     ): Promise<Response<EventDoc>> {
-        const response = await AdministratorService.add(id, payload, request.user)
+        const response = await AdministratorService.add(eventId, payload, request.user)
         this.setStatus(201)
         return response
     }
