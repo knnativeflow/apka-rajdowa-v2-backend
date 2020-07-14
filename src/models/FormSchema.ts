@@ -5,7 +5,7 @@ export type Structure = Record<string, FieldDefinition>
 
 export interface FieldDefinition {
     type: FieldType;
-    name: string;
+    label: string;
     enum?: string[];
     htmlType?: string;
     unique?: boolean;
@@ -13,7 +13,6 @@ export interface FieldDefinition {
     required?: boolean;
     default?: any;
     description?: string;
-    tooltip?: string;
 }
 
 export enum FieldType {

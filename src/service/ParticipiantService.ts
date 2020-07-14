@@ -73,7 +73,7 @@ async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
         const field = schema.structure[key]
         if (!field) throw e
         throw Exception.fromMessage(
-            `Pole: ${field.name} musi mieć unikalną wartość. Mamy już uczestnika w systemie którego ${field.name} jest ${value}`,
+            `Pole: ${field.label} musi mieć unikalną wartość. Mamy już uczestnika w systemie którego ${field.label} jest ${value}`,
             422
         )
     } else throw e
@@ -168,7 +168,7 @@ function _serializeParticipant(participant: any): any {
     return Object.fromEntries(Object.entries(participant).map(([k,v]) => Array.isArray(v) ? [k,v.toString()] : [k,v]))
 }
 function _workbookColumns(structure: Structure): Partial<Column>[] {
-    return Object.entries(structure).map(([key, field], index) => ({header: field.name, key, width: field.name.length * 1.5}))
+    return Object.entries(structure).map(([key, field], index) => ({header: field.label, key, width: field.label.length * 1.5}))
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {
