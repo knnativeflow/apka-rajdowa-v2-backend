@@ -1,12 +1,13 @@
-import {generateRoutes, generateSwaggerSpec, RoutesConfig, SwaggerConfig} from 'tsoa'
+import {ExtendedSpecConfig, generateRoutes, generateSpec, RoutesConfig, SpecConfig} from 'tsoa'
 import ts from 'ttypescript/lib/typescript'
-import dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
+import {ExtendedRoutesConfig} from "@tsoa/cli/dist/cli";
 
 (async () => {
     dotenv.config({ path: '.env' })
     const isLocal = process.env.NODE_ENV === 'development';
 
-    const swaggerOptions: SwaggerConfig = {
+    const swaggerOptions: ExtendedSpecConfig = {
         basePath: '/api/v1',
         entryFile: './src/server.ts',
         specVersion: 3,
@@ -14,6 +15,7 @@ import dotenv from 'dotenv'
         schemes: isLocal ? ['http'] : ['https'],
         outputDirectory: './static',
         controllerPathGlobs: ['./src/api/*'],
+        'noImplicitAdditionalProperties': 'silently-remove-extras', //Verify it
         securityDefinitions: {
             GOOGLE_TOKEN: {
                 type: 'apiKey',
@@ -181,11 +183,12 @@ import dotenv from 'dotenv'
         }
     }
 
-    const routeOptions: RoutesConfig = {
+    const routeOptions: ExtendedRoutesConfig = {
         'basePath': '/api/v1',
         'entryFile': './src/server.ts',
         'routesDir': './src/api/_auto',
-        'authenticationModule': './src/middlewares/authentication.ts'
+        'authenticationModule': './src/middlewares/authentication.ts',
+        'noImplicitAdditionalProperties': 'silently-remove-extras' //Verify it
     }
 
     const ignore = [
@@ -197,14 +200,15 @@ import dotenv from 'dotenv'
     const compilerOptions = {
         'moduleResolution': ts.ModuleResolutionKind.NodeJs,
         'baseUrl': '.',
+        esModuleInterop: true,
         'paths': { //This has to be the same config as in tsconfig.json
             '*': [
                 'src/*'
             ]
-        }
+        },
     }
 
-    await generateSwaggerSpec(swaggerOptions, routeOptions, compilerOptions, ignore)
+    await generateSpec(swaggerOptions, compilerOptions as any, ignore)
 
-    await generateRoutes(routeOptions, swaggerOptions, compilerOptions, ignore)
+    await generateRoutes(routeOptions, compilerOptions as any, ignore)
 })()

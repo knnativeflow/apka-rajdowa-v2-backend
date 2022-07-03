@@ -39,7 +39,8 @@ export class ParticipantApi extends Controller {
         @Body() payload: Participiant,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant[]>> {
-        return await ParticipiantService.editMany(id, request.query, payload, request.user)
+        const query = request.query as Record<string, string> //TODO: check type signatures for query
+        return await ParticipiantService.editMany(id, query, payload, request.user)
     }
 
     /**
@@ -71,8 +72,9 @@ export class ParticipantApi extends Controller {
     public async find(
         eventId: string,
         id: string,
-        @Request() { query }: ExpressRequest
+        @Request() request: ExpressRequest
     ): Promise<Response<ParticipantResponse>> {
+        const query = request.query as any //TODO: check type signatures for query
         return await ParticipiantService.find(id, query)
     }
 
