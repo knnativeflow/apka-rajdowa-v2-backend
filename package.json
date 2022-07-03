@@ -16,10 +16,6 @@
     "test": "jest",
     "playground": "ts-node -r tsconfig-paths/register src/playground.ts"
   },
-  "engines": {
-    "npm": "6.x.x",
-    "node": "12.x.x"
-  },
   "devDependencies": {
     "@types/cors": "^2.8.12",
     "@types/dotenv": "^8.2.0",
