@@ -208,20 +208,6 @@ import {ExtendedRoutesConfig} from "@tsoa/cli/dist/cli";
         },
     }
 
-    // const specOptions: ExtendedSpecConfig = {
-    //     basePath: "/api",
-    //     entryFile: "./api/server.ts",
-    //     specVersion: 3,
-    //     outputDirectory: "./api/dist",
-    //     controllerPathGlobs: ["./routeControllers/**/*Controller.ts"],
-    // };
-    //
-    // const routeOptions: ExtendedRoutesConfig = {
-    //     basePath: "/api",
-    //     entryFile: "./api/server.ts",
-    //     routesDir: "./api",
-    // };
-
     await generateSpec(swaggerOptions, compilerOptions as any, ignore)
 
     await generateRoutes(routeOptions, compilerOptions as any, ignore)
