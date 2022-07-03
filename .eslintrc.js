@@ -7,12 +7,9 @@ module.exports = {
   parserOptions: {
     project: `./tsconfig.json`
   },
-  plugins: ["@typescript-eslint"],
+  plugins: ['@typescript-eslint/eslint-plugin'],
   extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    'plugin:@typescript-eslint/recommended',
   ],
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
@@ -22,6 +19,7 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': ['error', {
       'allowExpressions': true
     }],
-    '@typescript-eslint/no-unused-vars': 'off'
+    '@typescript-eslint/no-unused-vars': 'off',
+    'no-unused-vars': 'off'
   }
 }

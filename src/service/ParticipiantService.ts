@@ -47,7 +47,6 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
 
     const [list, total] = [await listPromise, await totalPromise]
     const pages = list.length ? Math.trunc(total / count) || 1 : 0
-    // eslint-disable-next-line @typescript-eslint/camelcase
     const meta = { total, pages, current_page: page }
 
     return new Response({ list, meta }) //TODO: ujednolicić meta response

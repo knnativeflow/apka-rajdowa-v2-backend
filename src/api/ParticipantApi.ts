@@ -4,9 +4,8 @@ import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
 import { ParticipantResponse, Participiant } from "models/Participiant";
 import ParticipiantService, { ACCESS_TYPE } from "service/ParticipiantService";
 import { AuthRequest } from 'common/AuthRequest'
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore
-type Record<K, V> = { [p: K]: V }
+
+// type Record<K, V> = { [p: K]: V }
 
 @Route()
 @Tags('Participants')
