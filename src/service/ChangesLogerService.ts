@@ -87,7 +87,7 @@ async function _getEventChangelogModel(eventId: string): Promise<Model<Changelog
         return mongoose.model(changelogModelName)
     }
 
-    const schema = new Schema(ChangelogSchema, {
+    const schema = new Schema(ChangelogSchema as any, {
         versionKey: false,
         collection: changelogModelName
     })

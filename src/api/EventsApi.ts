@@ -74,7 +74,7 @@ export class EventsApi extends Controller {
 
 function _handleFile(request: AuthRequest): Promise<any> {
     const multerSingle = multer({ dest: 'static/img' }).single('logo')
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         multerSingle(request, undefined, error => {
             if (error) {
                 reject(error)

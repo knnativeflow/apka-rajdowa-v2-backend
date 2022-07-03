@@ -1,7 +1,19 @@
 import {Body, Controller, Get, Post, Route, Security, Tags} from 'tsoa'
 import Response from "common/Response";
 import FormSchemaService from 'service/FormSchemaService'
-import {FormSchemaDoc, FormSchemaRequest} from "models/FormSchema";
+import {FormSchemaRequest, Structure} from "models/FormSchema";
+import {Document} from "mongoose";
+
+export interface FormSchemaDoc extends Document{
+    name: string;
+    description: string;
+    colors: {
+        primary: string;
+        background: string;
+    };
+    structure: Structure;
+    slug: string;
+}
 
 @Route()
 @Tags('Form Schemas')
