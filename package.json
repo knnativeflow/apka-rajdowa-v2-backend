@@ -1,7 +1,7 @@
 {
   "name": "native-flow-express-ts-boilertemplate",
   "version": "1.0.0",
-  "description": "Boilertemplate of express + typescript REST backend app",
+  "description": "Backend for API",
   "author": "Maciej Kopeć (dimitor115)",
   "license": "MIT",
   "main": "dist/server.js",
