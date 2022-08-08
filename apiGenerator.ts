@@ -186,6 +186,7 @@ import {ExtendedRoutesConfig} from "@tsoa/cli/dist/cli";
     const routeOptions: ExtendedRoutesConfig = {
         'basePath': '/api/v1',
         'entryFile': './src/server.ts',
+        'controllerPathGlobs': ['./src/api/*'],
         'routesDir': './src/api/_auto',
         'authenticationModule': './src/middlewares/authentication.ts',
         'noImplicitAdditionalProperties': 'silently-remove-extras' //Verify it
