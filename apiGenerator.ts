@@ -189,7 +189,7 @@ import {ExtendedRoutesConfig} from "@tsoa/cli/dist/cli";
         'controllerPathGlobs': ['./src/api/*'],
         'routesDir': './src/api/_auto',
         'authenticationModule': './src/middlewares/authentication.ts',
-        'noImplicitAdditionalProperties': 'silently-remove-extras' //Verify it
+        'noImplicitAdditionalProperties': 'ignore'
     }
 
     const ignore = [
