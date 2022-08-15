@@ -10,7 +10,7 @@ import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import {TokenPayload} from 'google-auth-library'
 import {getEventIdFromFormId} from 'common/utils'
 import Excel, {Column, Workbook} from 'exceljs'
-import { byIdQuery } from 'common/utils'
+import {byIdQuery} from 'common/utils'
 
 export enum ACCESS_TYPE {
     PRIVATE = 'private',
@@ -35,33 +35,43 @@ async function find(formSlug, query: Query): Promise<Response<ParticipantRespons
     const fields = _prepareFields(query)
     const sort = _prepareSortConditions(query)
 
-        const listPromise = mongoose.connection.collection(`form_${formSlug}`)
-            .find(filters, fields)
-            .skip((page - 1) * count)
-            .limit(count)
-            .sort(sort)
-            .toArray()
+    const listPromise = mongoose.connection.collection(`form_${formSlug}`)
+        .find(filters, fields)
+        .skip((page - 1) * count)
+        .limit(count)
+        .sort(sort)
+        .toArray()
 
     const totalPromise = mongoose.connection.collection(`form_${formSlug}`)
         .countDocuments(filters)
 
     const [list, total] = [await listPromise, await totalPromise]
     const pages = list.length ? Math.trunc(total / count) || 1 : 0
-    const meta = { total, pages, current_page: page }
+    const meta = {total, pages, current_page: page}
 
-    return new Response({ list, meta }) //TODO: ujednolicić meta response
+    return new Response({list, meta}) //TODO: ujednolicić meta response
 }
 
-async function add(formSlug: string, type: ACCESS_TYPE, data: Participiant): Promise<Response<ParticipantDoc>> {
-    const formModel = await _getModel(formSlug, type)
+async function add(formSlug: string, data: Participiant): Promise<Response<ParticipantDoc>> {
+    const formModel = await _getModel(formSlug, ACCESS_TYPE.PRIVATE)
+    const schema = await _getSchema(formSlug)
+    const enrichedData = {
+        ...data,
+        ..._addDefaultFields(schema)
+    }
     try {
-        const result = await formModel.create(data)
+        const result = await formModel.create(enrichedData)
         return new Response(result)
     } catch (e) {
         await _parseCreateErrors(e, formSlug)
     }
 }
 
+function _addDefaultFields(schema: FormSchemaDoc): Record<string, unknown> {
+    return Object.fromEntries(
+        Object.entries(schema.structure).filter(([, value]) => value.isHidden && value.default).map(([key, value]) => [key, value.default])
+    )
+}
 
 
 async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
@@ -89,12 +99,12 @@ async function editMany(formSlug: string, query: Record<string, string>, data: R
         CHANGE_TYPE.EDIT,
         'Zmiana wielu uczestników',
         async () => {
-            if(Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby edytować wszystkich uczestników musisz podać jawnie zapytanie')
+            if (Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby edytować wszystkich uczestników musisz podać jawnie zapytanie')
             const allMatching = await formModel.find(query)
             const ids = allMatching.map<string>(p => p._id)
             const result = await formModel.updateMany(query, data)
             if (result?.nModified <= 0) throw Exception.fromMessage(`No Participants were found by given query ${query}`)
-            const updatedResult = await formModel.find({ _id: { $in: ids } })
+            const updatedResult = await formModel.find({_id: {$in: ids}})
             return new Response(updatedResult)
         }
     )
@@ -111,7 +121,7 @@ async function editOne(formId: string, participantId: string, data: Record<strin
         CHANGE_TYPE.EDIT,
         'Zmiana uczestnika',
         async () => {
-            const result = await formModel.findOneAndUpdate({ _id: participantId }, data, { new: true })
+            const result = await formModel.findOneAndUpdate({_id: participantId}, data, {new: true})
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -128,7 +138,7 @@ async function remove(formId: string, participantId: string, user: TokenPayload)
         CHANGE_TYPE.REMOVE,
         'Usunięcie uczestnika',
         async () => {
-            const result = await formModel.findOneAndDelete({ _id: participantId })
+            const result = await formModel.findOneAndDelete({_id: participantId})
             if (!result) throw Exception.fromMessage(`Could not found Participant by given id: ${participantId}`)
             return new Response(result)
         })
@@ -145,7 +155,7 @@ async function removeMany(formSlug: string, query: Record<string, string>, user:
         CHANGE_TYPE.REMOVE,
         'Usunięcie wielu uczestników',
         async () => {
-            if(Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby usunąć wszystkich uczestników musisz podać jawnie zapytanie')
+            if (Object.keys(query).length <= 0) throw Exception.fromMessage('Ze względów bezpieczeństwa aby usunąć wszystkich uczestników musisz podać jawnie zapytanie')
             const result = await formModel.deleteMany(query)
             if (result?.deletedCount <= 0) throw Exception.fromMessage(`Nie znaleziono żadnego uczestnika spełniającego to zapytanie ${JSON.stringify(query)}`)
             return new Response([])
@@ -164,10 +174,15 @@ async function exportExcel(slug: string): Promise<Workbook> {
 }
 
 function _serializeParticipant(participant: any): any {
-    return Object.fromEntries(Object.entries(participant).map(([k,v]) => Array.isArray(v) ? [k,v.toString()] : [k,v]))
+    return Object.fromEntries(Object.entries(participant).map(([k, v]) => Array.isArray(v) ? [k, v.toString()] : [k, v]))
 }
+
 function _workbookColumns(structure: Structure): Partial<Column>[] {
-    return Object.entries(structure).map(([key, field], index) => ({header: field.label, key, width: field.label.length * 1.5}))
+    return Object.entries(structure).map(([key, field], index) => ({
+        header: field.label,
+        key,
+        width: field.label.length * 1.5
+    }))
 }
 
 async function _getModel(formSlug, type = ACCESS_TYPE.PUBLIC): Promise<Model<ParticipantDoc>> {

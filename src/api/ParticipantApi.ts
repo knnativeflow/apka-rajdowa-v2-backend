@@ -20,7 +20,7 @@ export class ParticipantApi extends Controller {
         id: string,
         @Body() payload: Participiant
     ): Promise<Response<Participiant>> {
-        const response = await ParticipiantService.add(id, ACCESS_TYPE.PUBLIC, payload)
+        const response = await ParticipiantService.add(id, payload)
         this.setStatus(201)
         return response
     }
