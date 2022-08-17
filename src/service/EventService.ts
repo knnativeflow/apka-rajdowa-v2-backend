@@ -12,7 +12,7 @@ import {TokenPayload} from 'google-auth-library'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import mongoose from 'mongoose'
 import {FormSchemaModel} from 'models/FormSchema'
-import {PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
+import {DeleteObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
 import {config} from 'config/config';
 
 const client = new S3Client({
@@ -89,13 +89,13 @@ function _dropCollection(name: string): Promise<any> {
 }
 
 async function _removeEventLogo(result: EventDoc): Promise<void> {
-    const fileName = result.logo.split('/img/')[1]
-    try {
-        await fs.promises.unlink(`static/img/${fileName}`)
-        logger.info(`Removed file : ${fileName}`)
-    } catch (e) {
-        logger.error(`Failed during removing file: ${fileName}`)
-    }
+    const key = result.logo.split('.com/')[1]
+    console.log(key)
+    const command = new DeleteObjectCommand({
+        Bucket: "apka-rajdowa-prod",
+        Key: key,
+    })
+    await client.send(command);
 }
 
 async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
