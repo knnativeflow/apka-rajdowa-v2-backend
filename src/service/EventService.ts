@@ -23,8 +23,7 @@ const client = new S3Client({
 async function add(event: EventRequest, logo: Express.Multer.File, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
     console.log(event)
-    const {administrators, messages} = await _prepareAdministrators([], user.sub, user.email) //TODO replace this empty array
-
+    const {administrators, messages} = await _prepareAdministrators(event.usersEmails, user.sub, user.email)
     const parsedEvent = {
         ...event,
         administrators,
