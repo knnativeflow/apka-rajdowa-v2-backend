@@ -132,6 +132,7 @@ async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {
 async function findById(id: string): Promise<Response<EventDoc>> {
     logger.info(`Fetching event ${id} details`)
     const query = byIdQuery(id)
+    //TODO: checking previligies
     const result = await EventModel.findOne(query)
     return new Response(result)
 }
