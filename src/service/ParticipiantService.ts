@@ -76,13 +76,13 @@ function _addDefaultFields(schema: FormSchemaDoc): Record<string, unknown> {
 
 async function _parseCreateErrors(e: any, formSlug: string): Promise<void> {
     if (e?.name === 'MongoError' && e?.code === MONGO_UNIQUE_ERROR && e?.keyPattern) {
-        const [key, value] = Object.entries(e?.keyPattern)[0]
+        const [key, value] = Object.entries(e?.keyValue)[0]
         const schema = await _getSchema(formSlug)
         if (!schema) throw e
         const field = schema.structure[key]
         if (!field) throw e
         throw Exception.fromMessage(
-            `Pole: ${field.label} musi mieć unikalną wartość. Mamy już uczestnika w systemie którego ${field.label} jest ${value}`,
+            `Pole "${field.label}" musi mieć unikalną wartość. Mamy już uczestnika, który posiada wprowadzoną wartość "${value}" do wydarzenia.`,
             422
         )
     } else throw e
