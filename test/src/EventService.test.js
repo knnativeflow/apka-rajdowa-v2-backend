@@ -6,12 +6,13 @@ import ChangesLogerService from "../../src/service/ChangesLogerService";
 import {EventModel} from "../../src/models/Event";
 import {UserModel} from "../../src/models/User";
 
+jest.mock('@aws-sdk/client-s3');
+
 const createEvent = async (input, user) => {
-  return EventService.add(input, {filename: 'test'}, user)
+  return EventService.add(input, {buffer: new Buffer(''), mimetype: 'xx'}, user)
 }
 
-jest.setTimeout(50000)
-
+//Currently the service methods returns objects with tons of garbage from mongoose, until it will be addressed we need to clean to response to do the assertions
 const clean = it => JSON.parse(JSON.stringify(it))
 
 const USER = {sub: '123', email: 'test@gmail.com'}
@@ -95,7 +96,7 @@ describe('Event service', () => {
         emailAlias: 'alias@test.pl',
         startDate: '2023-02-02T23:00:00.000Z',
         endDate: '2023-09-02T22:00:00.000Z', //??
-        logo: '/static/img/test',
+        logo: 'https://apka-rajdowa-prod.s3.eu-central-1.amazonaws.com/img/logo/rajd-wiosenny',
         slug: 'rajd-wiosenny',
         administrators: [
           expect.objectContaining({
