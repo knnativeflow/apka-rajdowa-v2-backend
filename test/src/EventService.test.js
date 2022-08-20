@@ -132,7 +132,7 @@ describe('Event service', () => {
         endDate: '09-03-2023',
       }
 
-      await expect(EventService.update('123123', update, USER)).rejects.toMatchObject({})
+      await expect(EventService.update('123123', update, USER)).rejects.toMatchObject({httpCode: 404})
     })
 
     test('Should write change log entry', async () => {
@@ -181,8 +181,6 @@ describe('Event service', () => {
       await parepreEvent({usersEmails: [USER_2.email]})
       await parepreEvent({emailAlias: 'alias2@test.pl', name: 'Rajd jesienny'}, USER_2)
 
-      console.log(JSON.stringify(await EventModel.find().lean(), null, 2))
-
       const response1 = await EventService.findAll(USER);
       //then: USER has access only to event created by himself
       expect(clean(response1.data)).toMatchObject([{name: 'Rajd wiosenny'}])
@@ -191,6 +189,17 @@ describe('Event service', () => {
       //and: USER_2 has access to event created by himself and other one where has admin role
       expect(clean(response2.data)).toMatchObject([{name: 'Rajd wiosenny'}, {name: 'Rajd jesienny'}])
 
+    })
+
+    test('Should return event by id', async () => {
+      const id = await parepreEvent()
+
+      const response = await EventService.findById(id);
+      expect(clean(response.data)).toMatchObject({name: 'Rajd wiosenny'})
+    })
+
+    test('Should throw 404 when event does not exists', async () => {
+      await expect(EventService.findById('123')).rejects.toMatchObject({httpCode: 404})
     })
   })
 })

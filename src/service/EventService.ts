@@ -109,7 +109,7 @@ async function update(eventId: string, event: EventUpdateRequest, user: TokenPay
             logger.info(`Updating event with id ${eventId}`)
             const query = byIdQuery(eventId)
             const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
-            if (!result) throw Exception.fromMessage(`Event with id ${eventId} doesn't exist`)
+            if (!result) throw Exception.fromMessage(`Event with id ${eventId} doesn't exist`, 404)
             return new Response(result)
         })
 }
@@ -132,8 +132,8 @@ async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {
 async function findById(id: string): Promise<Response<EventDoc>> {
     logger.info(`Fetching event ${id} details`)
     const query = byIdQuery(id)
-    //TODO: checking previligies
-    const result = await EventModel.findOne(query)
+    const result: EventDoc | null = await EventModel.findOne(query).lean()
+    if(!result) throw Exception.fromMessage(`Event with id ${id} doesn't exist`, 404)
     return new Response(result)
 }
 
@@ -141,6 +141,9 @@ async function findPublicByFormId(formId: string): Promise<Response<EventPublicD
     logger.info(`Fetching public event data for ${formId} form`)
     const query = await getEventIdFromFormId(formId)
     const result = await EventModel.findOne(query, 'name startDate endDate logo')
+
+    if(!result) throw Exception.fromMessage(`Event doesn't exist`, 404)
+
     return new Response(result)
 }
 
