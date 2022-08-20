@@ -12,20 +12,45 @@ import {TokenPayload} from 'google-auth-library'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import mongoose from 'mongoose'
 import {FormSchemaModel} from 'models/FormSchema'
+import {DeleteObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
+import {config} from 'config/config';
 
-async function add(event: EventRequest, img, user: TokenPayload): Promise<Response<EventDoc>> {
+const client = new S3Client({
+    region: 'eu-central-1',
+    credentials: {accessKeyId: config.awsAccessKey, secretAccessKey: config.awsSecretKey}
+})
+
+async function add(event: EventRequest, logo: Express.Multer.File, user: TokenPayload): Promise<Response<EventDoc>> {
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
     console.log(event)
     const {administrators, messages} = await _prepareAdministrators([], user.sub, user.email) //TODO replace this empty array
+
     const parsedEvent = {
         ...event,
         administrators,
         forms: [],
-        logo: `/static/img/${img.filename}`
+        logo: 'boilerplate'
     }
     const result = await EventModel.create(parsedEvent)
+
+    const logoPath = `img/logo/${result.slug}`
+    await uploadLogo(logo, logoPath)
+    const logoUrl = `https://apka-rajdowa-prod.s3.eu-central-1.amazonaws.com/${logoPath}`
+    await EventModel.updateOne({_id: result._id}, {logo: logoUrl})
+
     await mongoose.connection.createCollection(`changelog_${result.slug}`)
     return new Response(result, messages)
+}
+
+async function uploadLogo(file: Express.Multer.File, key: string): Promise<void> {
+    const command = new PutObjectCommand({
+        Bucket: "apka-rajdowa-prod",
+        Key: key,
+        Body: file.buffer,
+        ACL: 'public-read',
+        ContentType: file.mimetype,
+    })
+    await client.send(command);
 }
 
 async function _prepareAdministrators(
@@ -60,17 +85,17 @@ async function _removeAssociatedCollections(result: EventDoc): Promise<void> {
 }
 
 function _dropCollection(name: string): Promise<any> {
-   return mongoose.connection.collection(name).drop()
+    return mongoose.connection.collection(name).drop()
 }
 
 async function _removeEventLogo(result: EventDoc): Promise<void> {
-    const fileName = result.logo.split('/img/')[1]
-    try {
-        await fs.promises.unlink(`static/img/${fileName}`)
-        logger.info(`Removed file : ${fileName}`)
-    } catch (e) {
-        logger.error(`Failed during removing file: ${fileName}`)
-    }
+    const key = result.logo.split('.com/')[1]
+    console.log(key)
+    const command = new DeleteObjectCommand({
+        Bucket: "apka-rajdowa-prod",
+        Key: key,
+    })
+    await client.send(command);
 }
 
 async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {

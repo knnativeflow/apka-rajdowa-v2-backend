@@ -9,6 +9,8 @@ export interface Config {
     secretKey: string;
     googleClientId: string;
     changelogExpireTime: number;
+    awsAccessKey: string;
+    awsSecretKey: string;
 }
 
 export const config: Config = {
@@ -17,7 +19,10 @@ export const config: Config = {
     databaseUrl: _loadEnvVariable('DATABASE_URL'),
     googleClientId: _loadEnvVariable('GOOGLE_CLIENT_ID'),
     secretKey: _loadEnvVariable('SECRET_KEY'),
-    changelogExpireTime: +_loadEnvVariable('CHANGELOG_EXPIRE_TIME', '3600')
+    changelogExpireTime: +_loadEnvVariable('CHANGELOG_EXPIRE_TIME', '3600'),
+    awsAccessKey: _loadEnvVariable('AWS_ACCESS_KEY_ID'),
+    awsSecretKey: _loadEnvVariable('AWS_SECRET_ACCESS_KEY'),
+
 }
 
 function _loadEnvVariable(name: string, defaultValue?: string): string {
