@@ -24,6 +24,7 @@ async function add(event: EventRequest, logo: Express.Multer.File, user: TokenPa
     logger.info(`Creating new event with name ${event.name} by ${user.email}`)
     console.log(event)
     const {administrators, messages} = await _prepareAdministrators(event.usersEmails, user.sub, user.email)
+    //TODO: validate if startDate is before endDate
     const parsedEvent = {
         ...event,
         administrators,

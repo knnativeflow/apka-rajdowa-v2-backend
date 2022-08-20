@@ -45,6 +45,40 @@ describe('Event service', () => {
 
   describe('Add event', () => {
 
+    test('Validation error when missing required fields', async () => {
+      //missing name
+      await expect(createEvent({
+        emailAlias: 'alias@test.pl',
+        startDate: '02-03-2023',
+        endDate: '09-03-2023',
+        usersEmails: []
+      }, USER)).rejects.toMatchObject({name: 'ValidationError'})
+
+      //missing email
+      await expect(createEvent({
+        name: 'Rajd',
+        startDate: '02-03-2023',
+        endDate: '09-03-2023',
+        usersEmails: []
+      }, USER)).rejects.toMatchObject({name: 'ValidationError'})
+
+      //missing start date
+      await expect(createEvent({
+        name: 'Rajd',
+        emailAlias: 'alias@test.pl',
+        endDate: '09-03-2023',
+        usersEmails: []
+      }, USER)).rejects.toMatchObject({name: 'ValidationError'})
+
+      //missing end date
+      await expect(createEvent({
+        name: 'Rajd',
+        emailAlias: 'alias@test.pl',
+        startDate: '02-03-2023',
+        usersEmails: []
+      }, USER)).rejects.toMatchObject({name: 'ValidationError'})
+    })
+
     test('Should add event', async () => {
       const input = {
         name: 'Rajd wiosenny',
@@ -105,6 +139,8 @@ describe('Event service', () => {
         ]
       })
     })
+
+
   })
 
   describe('Update event', () => {
@@ -201,5 +237,8 @@ describe('Event service', () => {
     test('Should throw 404 when event does not exists', async () => {
       await expect(EventService.findById('123')).rejects.toMatchObject({httpCode: 404})
     })
+
+
+    //TODO: Find by form id
   })
 })
