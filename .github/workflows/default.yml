@@ -9,9 +9,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Instal Dependencies
+    - name: Install Dependencies
       run: yarn
     - name: Build
       run: yarn build
     - name: Lint
       run: yarn lint
+    - name: Test
+      run: yarn test

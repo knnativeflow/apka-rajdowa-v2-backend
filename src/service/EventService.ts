@@ -12,45 +12,30 @@ import {TokenPayload} from 'google-auth-library'
 import clog, {CHANGE_TYPE} from 'service/ChangesLogerService'
 import mongoose from 'mongoose'
 import {FormSchemaModel} from 'models/FormSchema'
-import {DeleteObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
-import {config} from 'config/config';
+import {removeFile, uploadPublicFile} from "common/aws";
 
-const client = new S3Client({
-    region: 'eu-central-1',
-    credentials: {accessKeyId: config.awsAccessKey, secretAccessKey: config.awsSecretKey}
-})
 
-async function add(event: EventRequest, logo: Express.Multer.File, user: TokenPayload): Promise<Response<EventDoc>> {
-    logger.info(`Creating new event with name ${event.name} by ${user.email}`)
-    console.log(event)
-    const {administrators, messages} = await _prepareAdministrators([], user.sub, user.email) //TODO replace this empty array
 
+async function add(request: EventRequest, logo: Express.Multer.File, user: TokenPayload): Promise<Response<EventDoc>> {
+    logger.info(`Creating new event with name ${request.name} by ${user.email}`)
+    console.log(request)
+    const {administrators, messages} = await _prepareAdministrators(request.usersEmails, user.sub, user.email)
+    //TODO: validate if startDate is before endDate
     const parsedEvent = {
-        ...event,
+        ...request,
         administrators,
         forms: [],
         logo: 'boilerplate'
     }
-    const result = await EventModel.create(parsedEvent)
+    const event = await EventModel.create(parsedEvent)
 
-    const logoPath = `img/logo/${result.slug}`
-    await uploadLogo(logo, logoPath)
+    const logoPath = `img/logo/${event.slug}`
+    await uploadPublicFile(logoPath, logo.buffer, logo.mimetype)
     const logoUrl = `https://apka-rajdowa-prod.s3.eu-central-1.amazonaws.com/${logoPath}`
-    await EventModel.updateOne({_id: result._id}, {logo: logoUrl})
+    const result = await EventModel.findOneAndUpdate({_id: event._id}, {logo: logoUrl}, {new: true})
 
-    await mongoose.connection.createCollection(`changelog_${result.slug}`)
+    await mongoose.connection.createCollection(`changelog_${event.slug}`)
     return new Response(result, messages)
-}
-
-async function uploadLogo(file: Express.Multer.File, key: string): Promise<void> {
-    const command = new PutObjectCommand({
-        Bucket: "apka-rajdowa-prod",
-        Key: key,
-        Body: file.buffer,
-        ACL: 'public-read',
-        ContentType: file.mimetype,
-    })
-    await client.send(command);
 }
 
 async function _prepareAdministrators(
@@ -90,12 +75,7 @@ function _dropCollection(name: string): Promise<any> {
 
 async function _removeEventLogo(result: EventDoc): Promise<void> {
     const key = result.logo.split('.com/')[1]
-    console.log(key)
-    const command = new DeleteObjectCommand({
-        Bucket: "apka-rajdowa-prod",
-        Key: key,
-    })
-    await client.send(command);
+    await removeFile(key)
 }
 
 async function update(eventId: string, event: EventUpdateRequest, user: TokenPayload): Promise<Response<EventDoc>> {
@@ -110,7 +90,7 @@ async function update(eventId: string, event: EventUpdateRequest, user: TokenPay
             logger.info(`Updating event with id ${eventId}`)
             const query = byIdQuery(eventId)
             const result = await EventModel.findOneAndUpdate(query, {$set: event}, {new: true})
-            if (!result) throw Exception.fromMessage(`Event with id ${eventId} doesn't exist`)
+            if (!result) throw Exception.fromMessage(`Event with id ${eventId} doesn't exist`, 404)
             return new Response(result)
         })
 }
@@ -133,7 +113,8 @@ async function findAll(user: TokenPayload): Promise<Response<EventDoc[]>> {
 async function findById(id: string): Promise<Response<EventDoc>> {
     logger.info(`Fetching event ${id} details`)
     const query = byIdQuery(id)
-    const result = await EventModel.findOne(query)
+    const result: EventDoc | null = await EventModel.findOne(query).lean()
+    if(!result) throw Exception.fromMessage(`Event with id ${id} doesn't exist`, 404)
     return new Response(result)
 }
 
@@ -141,6 +122,9 @@ async function findPublicByFormId(formId: string): Promise<Response<EventPublicD
     logger.info(`Fetching public event data for ${formId} form`)
     const query = await getEventIdFromFormId(formId)
     const result = await EventModel.findOne(query, 'name startDate endDate logo')
+
+    if(!result) throw Exception.fromMessage(`Event doesn't exist`, 404)
+
     return new Response(result)
 }
 
