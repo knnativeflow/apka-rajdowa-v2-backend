@@ -29,7 +29,7 @@ const parepreEvent = (override = {}, user = USER) => createEvent({
 
 describe('Event service', () => {
   beforeAll(async () => {
-    await connectToMongo(process.env.DBURL);
+    await connectToMongo(process.env.DATABASE_URL);
   })
   beforeEach(async () => {
     await mongoose.connection.dropDatabase();

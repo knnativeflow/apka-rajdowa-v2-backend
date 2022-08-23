@@ -16,7 +16,11 @@ export default async () => {
   const uri = mongo.getUri();
 
   process.env = {
-    DBURL: uri,
+    DATABASE_URL: uri,
+    GOOGLE_CLIENT_ID: '123',
+    SECRET_KEY: '123',
+    AWS_ACCESS_KEY_ID: '123',
+    AWS_SECRET_ACCESS_KEY: '123',
     ...process.env,
     ...ENV_VARS,
   };
