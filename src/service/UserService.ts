@@ -1,7 +1,7 @@
 import {User, UserModel} from 'models/User'
 import Response from 'common/Response'
 import {logger} from 'common/logger'
-import {TokenPayload} from 'google-auth-library/build/src/auth/loginticket'
+import {TokenPayload} from 'google-auth-library'
 import {config} from 'config/config'
 import Exception from 'common/Exception'
 import {OAuth2Client} from 'google-auth-library'
@@ -18,7 +18,7 @@ async function verifyAndCreateUser(token: string): Promise<Response<User | null>
     const result = await UserModel.findOne({'google.email': email})
 
     if(result)
-        return new Response(null)
+        return new Response(result)
 
     logger.info(`Creating new user with name ${name}`)
 
@@ -56,6 +56,12 @@ async function verifyAccessToEvent(eventId: string, userId: string, role: ROLE):
     )
 }
 
+async function getMe(user: TokenPayload): Promise<Response<User>> {
+    const result = await UserModel.findOne({ 'google.email': user.email })
+    if (!result) throw Exception.fromMessage('Nie ma takiego użytkownika', 404)
+    return new Response(result)
+}
+
 function _hasAccess(requiredRole: ROLE, userRole: ROLE): boolean {
     return requiredRole === userRole || (requiredRole === ROLE.EVENT_ADMINISTRATOR && userRole === ROLE.EVENT_OWNER)
 }
@@ -63,5 +69,6 @@ function _hasAccess(requiredRole: ROLE, userRole: ROLE): boolean {
 export default {
     verifyAndCreateUser,
     verifyTokenAndFetchUserFromGoogle,
-    verifyAccessToEvent
+    verifyAccessToEvent,
+    getMe
 }

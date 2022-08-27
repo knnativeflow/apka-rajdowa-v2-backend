@@ -102,11 +102,12 @@ export class ParticipantApi extends Controller {
     @Security('GOOGLE_TOKEN', ['ADMIN'])
     @Delete('/events/{eventId}/forms/{id}/participants')
     public async removeMany(
-      eventId: string,
+        eventId: string,
         id: string,
         @Request() request: AuthRequest
     ): Promise<Response<Participiant>> {
-      return await ParticipiantService.find(id, request.user)
+        const query = request.query as any //TODO: check type signatures for query
+        return await ParticipiantService.find(id, query)
     }
     /**
     * Export participant
