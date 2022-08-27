@@ -23,7 +23,7 @@ type ParticipantDoc = Document
 
 const SCHEMA_CACHE: Record<string, FormSchemaDoc> = {}
 
-async function find(formSlug, query: Query): Promise<Response<ParticipantResponse>> {
+async function find(formSlug: string, query: Query): Promise<Response<ParticipantResponse>> {
     if (!await _checkCollectionExists(formSlug)) {
         throw Exception.fromMessage(`Not found collection form_${formSlug}`, 404)
     }
